@@ -507,8 +507,6 @@ svg {
 
 .result-column {
   grid-area: result;
-  position: sticky;
-  top: 76px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2452,11 +2450,6 @@ input[type="number"]::-webkit-inner-spin-button {
       "result"
       "breakup"
       "notes";
-  }
-
-  .result-column {
-    position: static;
-    top: auto;
   }
 
   .estimate-disclaimer {
