@@ -1,101 +1,131 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Calculator,
   History as HistoryIcon,
-  IndianRupee,
+  Menu,
   Table2,
+  X,
 } from "lucide-react";
 import { BrandBolt } from "@/components/brand-bolt";
 
-const tabs = [
+const navigation = [
   {
     href: "/to-be-charged",
-    index: "01",
     label: "To be charged",
     icon: Calculator,
   },
   {
     href: "/already-charged",
-    index: "02",
     label: "Already charged",
     icon: Table2,
   },
   {
     href: "/history",
-    index: "03",
     label: "History",
     icon: HistoryIcon,
+  },
+  {
+    href: "/guide",
+    label: "Guide",
+    icon: BookOpen,
   },
 ] as const;
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [menuOpen]);
 
   return (
-    <>
-      <header className="site-header">
-        <div className="container header-inner">
-          <Link
-            className="brand"
-            href="/to-be-charged"
-            aria-label="CPDL Sundry Billing Portal — home"
+    <header className="site-header">
+      <div className="container header-inner">
+        <Link
+          className="brand"
+          href="/to-be-charged"
+          aria-label="CPDL Sundry Billing Portal — home"
+        >
+          <span className="brand-mark">
+            <BrandBolt className="brand-bolt" />
+          </span>
+          <span className="brand-text">
+            <span className="brand-name">CPDL</span>
+            <span className="brand-sub">
+              Chandigarh Power Distribution Limited
+            </span>
+          </span>
+          <span className="brand-rule" aria-hidden="true" />
+          <span className="brand-product">Sundry billing portal</span>
+        </Link>
+
+        <div className="header-right">
+          <nav
+            className={`main-nav${menuOpen ? " is-open" : ""}`}
+            id="main-navigation"
+            aria-label="Main sections"
           >
-            <span className="brand-mark">
-              <BrandBolt className="brand-bolt" />
-            </span>
-            <span className="brand-text">
-              <span className="brand-name">CPDL</span>
-              <span className="brand-sub">
-                Chandigarh Power Distribution Limited
-              </span>
-            </span>
-            <span className="brand-rule" aria-hidden="true" />
-            <span className="brand-product">Sundry billing portal</span>
-          </Link>
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  className="main-nav-link"
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <Icon
+                    className="main-nav-icon"
+                    size={15}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
           <div className="header-meta">
             <span className="header-meta-label">Tariff schedule</span>
             <span className="header-meta-value">2026–27</span>
           </div>
+
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-expanded={menuOpen}
+            aria-controls="main-navigation"
+            aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? (
+              <X size={20} strokeWidth={1.8} aria-hidden="true" />
+            ) : (
+              <Menu size={20} strokeWidth={1.8} aria-hidden="true" />
+            )}
+          </button>
         </div>
-      </header>
-
-      <nav className="primary-nav" aria-label="Billing sections">
-        <div className="container nav-inner">
-          <div className="nav-tabs">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = pathname === tab.href;
-
-              return (
-                <Link
-                  key={tab.href}
-                  className="nav-tab"
-                  href={tab.href}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  <span className="nav-tab-index">{tab.index}</span>
-                  <Icon
-                    className="nav-tab-icon"
-                    size={15}
-                    strokeWidth={1.8}
-                    aria-hidden="true"
-                  />
-                  <span>{tab.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="nav-context">
-            <IndianRupee size={13} strokeWidth={1.8} aria-hidden="true" />
-            <span>All amounts in INR</span>
-          </div>
-        </div>
-      </nav>
-    </>
+      </div>
+    </header>
   );
 }

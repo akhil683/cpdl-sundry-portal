@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CircleAlert, Download } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { CalculationHistory } from "@/components/calculation-history";
@@ -22,7 +23,7 @@ export default function HistoryPage() {
         ]}
       />
 
-      <aside className="history-warning" aria-label="Local history warning">
+      <aside className="history-warning" aria-label="Local history notice">
         <div className="history-warning-icon">
           <Download size={19} strokeWidth={1.8} aria-hidden="true" />
         </div>
@@ -31,12 +32,12 @@ export default function HistoryPage() {
             <CircleAlert size={12} strokeWidth={2} aria-hidden="true" />
             Local storage · not permanent
           </p>
-          <h2>Download a PDF copy for your records</h2>
+          <h2>Download a PDF copy for records you need to keep</h2>
           <p>
             Saved calculations live only in this browser. Clearing site data,
-            resetting the browser or switching devices will remove them. Use{" "}
-            <strong>Print / save PDF</strong> on any calculation you need to
-            keep.
+            resetting the browser or switching devices removes them.{" "}
+            <Link href="/guide#history">Read the guide</Link> for storage,
+            printing and retention details.
           </p>
         </div>
       </aside>

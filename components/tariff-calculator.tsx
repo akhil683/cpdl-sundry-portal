@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import {
+  ArrowRight,
+  BookOpen,
   Calculator,
   Check,
   ChevronDown,
@@ -964,52 +966,20 @@ export function TariffCalculator() {
         )}
       </section>
 
-      <section className="card notes-card">
-        <div className="card-head">
-          <div className="card-heading">
-            <span className="card-index">03</span>
-            <div>
-              <h2>Calculation notes</h2>
-              <p className="card-sub">
-                Assumptions applied to the generated estimate.
-              </p>
-            </div>
-          </div>
+      <section className="method-callout">
+        <div>
+          <span className="method-callout-label">Method &amp; assumptions</span>
+          <h2>How this estimate is calculated</h2>
+          <p>
+            Slab proration, fixed charges, electricity duty, MC tax, FPPCA and
+            category-specific rules are documented on the guide page.
+          </p>
         </div>
-
-        <div className="notes-body">
-          <ul className="notes-list">
-            <li>
-              <strong>Energy slabs.</strong> Monthly thresholds are prorated
-              using billing days ÷ 30 and rounded to whole units.
-            </li>
-            <li>
-              <strong>Fixed charges.</strong> Prorated using billing days ÷
-              30.4167. Connection-based tariffs use one connection.
-            </li>
-            <li>
-              <strong>MC tax.</strong> Applied at ₹0.16 per unit for all
-              categories, as stated in the tariff schedule.
-            </li>
-            <li>
-              <strong>Electricity duty.</strong> Domestic and agricultural rates
-              are prefilled. Commercial duty is not specified in the visible
-              schedule and starts at zero; edit it if required.
-            </li>
-            <li>
-              <strong>Temporary supply.</strong> Charged at the relevant tariff
-              plus 50%. The placeholder rate must be adjusted before use.
-            </li>
-          </ul>
-
-          <div className="notes-footer">
-            <ShieldCheck size={14} strokeWidth={1.8} aria-hidden="true" />
-            <p>
-              These figures are indicative. Verify the applicable tariff order
-              and standard operating procedure before official billing.
-            </p>
-          </div>
-        </div>
+        <Link className="btn btn-secondary btn-sm" href="/guide">
+          <BookOpen size={15} strokeWidth={1.8} aria-hidden="true" />
+          Read the guide
+          <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" />
+        </Link>
       </section>
     </div>
   );
