@@ -14,7 +14,7 @@ export default function AlreadyChargedPage() {
       <PageHeader
         section="Sundry billing · 02"
         title="Already charged"
-        description="Record charges that have already been applied. Enter each billed period and charge head; the sheet reconciles every row total into one grand total."
+        description="Record charges that have already been applied. Enter each billed period and charge head; the sheet reconciles every row total and feeds the net summary."
         facts={[
           { label: "Entry sheet", value: "Live totals" },
           { label: "Amounts", value: "INR (₹)" },

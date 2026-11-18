@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/page-header";
+import { ConsumerDetailsCard } from "@/components/consumer-details";
 import { TariffCalculator } from "@/components/tariff-calculator";
 
 export const metadata: Metadata = {
@@ -14,13 +15,16 @@ export default function ToBeChargedPage() {
       <PageHeader
         section="Sundry billing · 01"
         title="To be charged"
-        description="Prepare a tariff-wise estimate for an upcoming billing period. Energy slabs are prorated to the elapsed days and every charge head is itemised."
+        description="Prepare a tariff-wise estimate for an upcoming billing period. Consumption is split across tariff periods and prorated to the elapsed days, and every charge head is itemised."
         facts={[
           { label: "Calculation", value: "Elapsed days" },
           { label: "Amounts", value: "INR (₹)" },
         ]}
       />
-      <TariffCalculator />
+      <div className="workspace-stack">
+        <ConsumerDetailsCard />
+        <TariffCalculator />
+      </div>
     </div>
   );
 }

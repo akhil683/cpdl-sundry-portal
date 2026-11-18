@@ -7,12 +7,17 @@ import {
   History as HistoryIcon,
   IndianRupee,
   ListChecks,
+  Scale,
   Table2,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import {
+  ED_RATE_BEFORE_APR_2026,
+  ED_RATE_FROM_APR_2026,
+  FIXED_LOAD_FACTOR,
   TARIFFS,
   TARIFF_GROUPS,
+  TARIFF_PERIODS,
   getConsumptionUnit,
   type TariffConfig,
   type TariffKey,
@@ -45,6 +50,11 @@ const sections = [
     href: "#ledger",
     label: "Recording charged entries",
     icon: Table2,
+  },
+  {
+    href: "#net",
+    label: "Net summary",
+    icon: Scale,
   },
   {
     href: "#history",
@@ -92,7 +102,7 @@ export default function GuidePage() {
         description="One place for every rule, assumption and reminder used across the portal. Read this before preparing an estimate or recording an entry."
         facts={[
           { label: "Applies to", value: "All categories" },
-          { label: "Tariff year", value: "2026–27" },
+          { label: "Tariff periods", value: "3 applied" },
         ]}
       />
 
@@ -128,12 +138,13 @@ export default function GuidePage() {
 
           <div className="guide-body">
             <p>
-              The portal has three working areas. <strong>To be charged</strong>{" "}
-              prepares an itemised estimate for an upcoming billing period.{" "}
-              <strong>Already charged</strong> is a spreadsheet-style sheet for
-              charges that have already been applied.{" "}
-              <strong>History</strong> lists the estimates you have calculated in
-              this browser.
+              The portal has four working areas. <strong>To be charged</strong>{" "}
+              prepares an itemised estimate for an upcoming billing period and
+              captures the consumer credentials. <strong>Already charged</strong>{" "}
+              is a spreadsheet-style sheet for charges that have already been
+              applied. <strong>Net summary</strong> compares the two and prints a
+              net statement. <strong>History</strong> lists the estimates you have
+              calculated in this browser.
             </p>
             <p>
               There is no login and no server-side account. Inputs stay on the
@@ -150,6 +161,12 @@ export default function GuidePage() {
                 <li>
                   Select <strong>Calculate bill</strong> to build the estimate.
                   It is saved to browser history automatically.
+                </li>
+                <li>
+                  Record previous billing in{" "}
+                  <Link href="/already-charged">Already charged</Link>, then open{" "}
+                  <Link href="/net-summary">Net summary</Link> to compare the two
+                  and print the net statement.
                 </li>
                 <li>
                   Use <strong>Print / save PDF</strong> for a copy you need to
@@ -182,40 +199,53 @@ export default function GuidePage() {
               the from date.
             </p>
 
-            <h3>Tariff category</h3>
+            <h3>Tariff categories and subtypes</h3>
             <p>
               The selected category fixes the consumption unit, the slab
-              structure, the fixed-charge basis and whether electricity duty is
-              prefilled. A category&apos;s consumption and slab thresholds are
+              structure, the fixed-charge basis and the applicable tariff
+              subtypes. A category&apos;s consumption and slab thresholds are
               always expressed in its own unit — kWh for most domestic and
               agricultural categories, and kVAh for commercial, small power,
-              EV and high-tension categories.
+              EV and high-tension categories. Where the schedule defines them,
+              a <strong>tariff subtype</strong> is available: LT Commercial
+              single or three phase, Large Industry or HT Commercial, Municipal
+              or Advertisement supply, and EV Charging LT or HT.
             </p>
 
             <h3>Consumption and load</h3>
             <p>
-              Enter total metered consumption for the period and the connected
+              Enter total metered consumption for the period and the sanctioned
               load or contract demand, whichever the category uses. Blank
               values are treated as zero, so double-check that both fields are
-              filled before calculating.
+              filled before calculating. The sanctioned load can be captured in
+              the consumer credentials card; it is copied into the calculator.
             </p>
 
-            <h3>FPPCA and electricity duty</h3>
+            <h3>Tariff periods and electricity duty</h3>
             <p>
-              FPPCA is entered as a rupee amount for the period. Electricity
-              duty is entered as a rate per unit. Domestic and agricultural
-              rates are prefilled from the schedule; commercial duty is not
-              specified in the visible schedule and starts at zero, so edit it
-              if the applicable order requires a different rate.
+              The billing window is split automatically at{" "}
+              <strong>01-11-2025</strong> and <strong>01-04-2026</strong>. Units
+              are apportioned across the resulting tariff periods by billing
+              days, and each period uses its own energy rates, fixed charges and
+              slab thresholds. Electricity duty is no longer entered manually:
+              it is ₹{ED_RATE_BEFORE_APR_2026.toFixed(2)} per unit before
+              01-04-2026 and ₹{ED_RATE_FROM_APR_2026.toFixed(2)} per unit from
+              01-04-2026, applied period by period.
+            </p>
+
+            <h3>FPPCA</h3>
+            <p>
+              FPPCA is entered as a rupee amount for the whole billing window and
+              is added once. It is not prorated or split by the portal.
             </p>
 
             <h3>Slab proration</h3>
             <p>
               Monthly slab thresholds are prorated using{" "}
-              <strong>billing days ÷ 30</strong> and rounded to whole units. For
-              example, a 100-unit first slab over a 15-day period becomes a
-              50-unit first slab. Consumption is then allocated from the lowest
-              slab upward.
+              <strong>each period&apos;s billing days ÷ 30</strong> and rounded
+              to whole units. For example, a 100-unit first slab over a 15-day
+              period becomes a 50-unit first slab. Consumption is then allocated
+              from the lowest slab upward within each period.
             </p>
           </div>
         </section>
@@ -246,8 +276,17 @@ export default function GuidePage() {
               <div>
                 <dt>Electricity duty (ED)</dt>
                 <dd>
-                  The entered duty rate multiplied by total consumption. It is a
-                  per-unit charge, not a percentage of the energy charge.
+                  Applied automatically by billing date at{" "}
+                  <strong>
+                    ₹{ED_RATE_BEFORE_APR_2026.toFixed(2)} per unit before
+                    01-04-2026
+                  </strong>{" "}
+                  and{" "}
+                  <strong>
+                    ₹{ED_RATE_FROM_APR_2026.toFixed(2)} per unit from 01-04-2026
+                  </strong>
+                  . It is a per-unit charge, not a percentage of the energy
+                  charge.
                 </dd>
               </div>
               <div>
@@ -260,10 +299,12 @@ export default function GuidePage() {
               <div>
                 <dt>Fixed charges</dt>
                 <dd>
-                  The category&apos;s fixed rate multiplied by the connected
-                  load or contract demand (one connection where the tariff is
-                  connection-based), then prorated using{" "}
-                  <strong>billing days ÷ 30.4167</strong>.
+                  The category&apos;s fixed rate multiplied by the sanctioned
+                  load (one connection where the tariff is connection-based),
+                  then prorated using <strong>billing days ÷ 30.4167</strong>.
+                  From 01-11-2025 the load basis is{" "}
+                  <strong>{FIXED_LOAD_FACTOR * 100}% of the sanctioned load</strong>
+                  ; under the old tariff the full load is used.
                 </dd>
               </div>
               <div>
@@ -278,6 +319,11 @@ export default function GuidePage() {
             <div className="guide-callout">
               <span className="guide-callout-title">Category-specific rules</span>
               <ul>
+                <li>
+                  <strong>NDS-I</strong> fixed charge depends on the meter
+                  phase: ₹120/kW/month for Three Phase and ₹50/kW/month for
+                  Single Phase. The 2026–27 schedule uses a kW basis.
+                </li>
                 <li>
                   <strong>LTDS-I</strong> is marked for connected loads below
                   250 W. Confirm the consumer&apos;s eligibility before use.
@@ -313,8 +359,8 @@ export default function GuidePage() {
             <p>
               The <Link href="/already-charged">Already charged</Link> sheet
               records amounts that have already been billed. Add one row per
-              billed period and fill the charge heads that apply: energy, EC/ED,
-              MC, FPPCA, fixed and solar user charges.
+              billed period and fill the charge heads that apply: units, energy,
+              fixed, MC, ED, solar, FPPCA and others.
             </p>
             <ul className="guide-list">
               <li>Blank amount fields count as zero.</li>
@@ -324,24 +370,79 @@ export default function GuidePage() {
               </li>
               <li>
                 Each row total is the sum of its charge heads, and the grand
-                total sums every row across the sheet.
+                total sums every row across the sheet. Units are tracked
+                separately.
               </li>
               <li>
                 Totals update automatically, so no separate calculate step is
                 needed.
               </li>
               <li>
-                Use <strong>Print / save PDF</strong> to keep a copy of the
-                sheet; the sheet itself is not stored between visits.
+                The sheet is saved in this browser so the net summary can read
+                it. Use <strong>Print / save PDF</strong> to keep a permanent
+                copy.
               </li>
             </ul>
+          </div>
+        </section>
+
+        <section className="card guide-section" id="net">
+          <div className="card-head">
+            <div className="card-heading">
+              <span className="card-index">05</span>
+              <div>
+                <h2>Net summary</h2>
+                <p className="card-sub">
+                  To be charged minus already charged, charge head by charge
+                  head.
+                </p>
+              </div>
+            </div>
+            <span className="card-tag">Printable</span>
+          </div>
+
+          <div className="guide-body">
+            <p>
+              <Link href="/net-summary">Net summary</Link> reads the latest
+              saved estimate from <strong>To be charged</strong> and the entries
+              in <strong>Already charged</strong>. For every charge head the net
+              amount is <strong>to be charged − already charged</strong>. A
+              positive figure is an additional amount to recover; a negative
+              figure means an excess has already been charged.
+            </p>
+            <div className="guide-callout">
+              <span className="guide-callout-title">What the summary contains</span>
+              <ul>
+                <li>
+                  Consumer credentials, including division, sub division, the
+                  FPL9 balance and the net payable after adjustment.
+                </li>
+                <li>
+                  A charge-wise table for units, energy, ED, MC, FPPCA, fixed,
+                  solar and others, with subtotal and grand net amount.
+                </li>
+                <li>
+                  The tariff-period calculation behind the estimate and the
+                  entry-wise already-charged table.
+                </li>
+                <li>
+                  A print layout that opens the browser print dialog; choose
+                  “Save as PDF” to keep the net statement.
+                </li>
+              </ul>
+            </div>
+            <p>
+              The summary is not a separate dataset. It reflects the estimate
+              and ledger stored in this browser, so press{" "}
+              <strong>Update summary</strong> after changing either.
+            </p>
           </div>
         </section>
 
         <section className="card guide-section" id="history">
           <div className="card-head">
             <div className="card-heading">
-              <span className="card-index">05</span>
+              <span className="card-index">06</span>
               <div>
                 <h2>History, saving &amp; printing</h2>
                 <p className="card-sub">
@@ -378,7 +479,7 @@ export default function GuidePage() {
         <section className="card guide-section" id="tariff">
           <div className="card-head">
             <div className="card-heading">
-              <span className="card-index">06</span>
+              <span className="card-index">07</span>
               <div>
                 <h2>Tariff schedule</h2>
                 <p className="card-sub">
@@ -392,9 +493,29 @@ export default function GuidePage() {
 
           <div className="guide-body">
             <p>
-              The table below mirrors the schedule carried into the portal.
+              The billing window is split at the cut-off dates below, and each
+              period applies its own schedule. The table further down is the
+              current <strong>2026–27</strong> schedule; the approved 2025–26 and
+              old schedules are applied automatically when a billing period
+              falls in those windows.
+            </p>
+
+            <div className="guide-periods">
+              {TARIFF_PERIODS.map((period) => (
+                <div className="guide-period" key={period.id}>
+                  <strong>{period.label}</strong>
+                  <span>{period.range}</span>
+                  <span>
+                    ED {formatCurrency(period.edRate)} / unit
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p>
               Fixed charges are monthly and prorated by billing days; energy
-              rates are per consumption unit.
+              rates are per consumption unit. From 01-11-2025 the fixed-charge
+              load is {FIXED_LOAD_FACTOR * 100}% of the sanctioned load.
             </p>
 
             {TARIFF_GROUPS.map((group) => (
@@ -436,7 +557,7 @@ export default function GuidePage() {
         <section className="card guide-section" id="verify">
           <div className="card-head">
             <div className="card-heading">
-              <span className="card-index">07</span>
+              <span className="card-index">08</span>
               <div>
                 <h2>Before official billing</h2>
                 <p className="card-sub">
@@ -459,7 +580,12 @@ export default function GuidePage() {
               </li>
               <li>
                 Check any category-specific condition, such as LTDS-I load
-                eligibility or temporary-supply surcharge.
+                eligibility, NDS-I phase, or temporary-supply surcharge.
+              </li>
+              <li>
+                Confirm the latest estimate and the already-charged ledger
+                before printing a net summary; the net amount is only as current
+                as those two sources.
               </li>
               <li>
                 Reconcile the estimate with the standard operating procedure

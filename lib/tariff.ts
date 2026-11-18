@@ -12,6 +12,21 @@ export type TariffKind = "flat" | "slabs" | "slabs3" | "customSlabs";
 export type FixedBasis = "connection" | "kW" | "kVA";
 export type ConsumptionUnit = "kWh" | "kVAh";
 
+export type TariffPeriodId = "old" | "2025-26" | "2026-27";
+
+export type TariffSubtype =
+  | "default"
+  | "single"
+  | "three"
+  | "large"
+  | "htcommercial"
+  | "medium"
+  | "small"
+  | "municipal"
+  | "advert"
+  | "evlt"
+  | "evht";
+
 export interface TariffConfig {
   group: TariffGroup;
   unit?: ConsumptionUnit;
@@ -26,12 +41,56 @@ export interface TariffConfig {
   hint: string;
 }
 
+/** A rate table only overrides rates and fixed-charge mechanics. */
+interface TariffRateSet {
+  kind: TariffKind;
+  rates: number[];
+  fixed: number;
+  fixedBasis: FixedBasis;
+  thresholds?: number[];
+  labels?: string[];
+  ed?: number | null;
+}
+
+export interface TariffPeriod {
+  id: TariffPeriodId;
+  label: string;
+  range: string;
+  edRate: number;
+}
+
 export const FIXED_CHARGE_MONTH = 365 / 12;
 export const ENERGY_SLAB_MONTH = 30;
 export const MC_RATE = 0.16;
+/** From 01-11-2025 fixed charges use 85% of the sanctioned load. */
+export const FIXED_LOAD_FACTOR = 0.85;
+export const ED_RATE_BEFORE_APR_2026 = 0.12;
+export const ED_RATE_FROM_APR_2026 = 0.16;
+export const TARIFF_CUTOFFS = ["2025-11-01", "2026-04-01"] as const;
+
+export const TARIFF_PERIODS: TariffPeriod[] = [
+  {
+    id: "old",
+    label: "Old tariff",
+    range: "Before 01-11-2025",
+    edRate: ED_RATE_BEFORE_APR_2026,
+  },
+  {
+    id: "2025-26",
+    label: "Approved tariff 2025–26",
+    range: "01-11-2025 to 31-03-2026",
+    edRate: ED_RATE_BEFORE_APR_2026,
+  },
+  {
+    id: "2026-27",
+    label: "Tariff 2026–27",
+    range: "From 01-04-2026",
+    edRate: ED_RATE_FROM_APR_2026,
+  },
+];
 
 /**
- * Tariff schedule values carried over from the current CPDL sundry billing
+ * Current (2026–27) tariff schedule carried over from the CPDL sundry billing
  * workbook. Keep these figures aligned with the applicable tariff order.
  */
 export const TARIFFS = {
@@ -43,8 +102,8 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "connection",
     ed: 0.09,
-    loadLabel: "Connected load (kW)",
-    hint: "₹30 per connection per month; applicable only for connected loads below 250 watts. Energy rate ₹2.90 per unit.",
+    loadLabel: "Sanctioned load (kW)",
+    hint: "₹30 per connection per month; applicable only for load below 250 watts. Energy rate ₹2.90 per unit.",
   },
   "LTDS-II": {
     group: "Domestic",
@@ -54,7 +113,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "LTDS-III": {
@@ -65,7 +124,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "NDS-I": {
@@ -74,10 +133,10 @@ export const TARIFFS = {
     rates: [4.6, 4.8, 5.75],
     labels: ["0–100", "101–200", "Above 200"],
     fixed: 120,
-    fixedBasis: "kVA",
+    fixedBasis: "kW",
     ed: null,
-    loadLabel: "Connected load (kVA)",
-    hint: "₹120 per kVA per month fixed charge, with consumption charged across three energy slabs.",
+    loadLabel: "Sanctioned load (kW)",
+    hint: "LT Commercial: select Single Phase (₹50/kW/month) or Three Phase (₹120/kW/month). Energy slabs follow the applicable tariff period.",
   },
   "NDS-II": {
     group: "Commercial",
@@ -87,7 +146,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹120 per kVA per month fixed charge, with consumption charged across three energy slabs.",
   },
   "NDS-III": {
@@ -98,7 +157,7 @@ export const TARIFFS = {
     fixed: 160,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹160 per kVA per month fixed charge, with a flat energy rate of ₹6.70 per unit.",
   },
   "NDS-IV": {
@@ -109,7 +168,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹120 per kVA per month fixed charge, with a flat energy rate of ₹5.55 per unit.",
   },
   "NDS-V": {
@@ -121,7 +180,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with a flat energy rate of ₹2.95 per unit.",
   },
   "LTAS-I": {
@@ -133,7 +192,7 @@ export const TARIFFS = {
     fixed: 10,
     fixedBasis: "kW",
     ed: 0,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Agricultural pumping supply: ₹10 per kW per month and ₹2.90 per kWh.",
   },
   "LTAS-II": {
@@ -145,7 +204,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹2.95 per kVAh.",
   },
   "LTAS-III": {
@@ -157,7 +216,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹3.10 per kVAh.",
   },
   "SPMS-LTDS-I": {
@@ -170,7 +229,7 @@ export const TARIFFS = {
     fixed: 210,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Small power and medium supply: ₹210 per kVA per month. Slab thresholds are prorated on a 30-day basis.",
   },
   "LTPS-I": {
@@ -182,7 +241,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Water works and government supply: ₹220 per kVA per month and ₹5.55 per kVAh.",
   },
   "LTPS-II": {
@@ -194,7 +253,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Public lighting and sign board supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTPS-III": {
@@ -206,7 +265,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Defence, railway and MES supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTEV-I": {
@@ -218,7 +277,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Connected load (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Electric vehicle supply: ₹30 per kVA per month and ₹4.40 per kVAh.",
   },
   "HTS-I": {
@@ -230,7 +289,7 @@ export const TARIFFS = {
     fixed: 40,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-I: ₹40 per kVA per month and ₹5.50 per kVAh.",
   },
   "HTS-II": {
@@ -242,7 +301,7 @@ export const TARIFFS = {
     fixed: 125,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-II: ₹125 per kVA per month and ₹5.60 per kVAh.",
   },
   "HTS-III": {
@@ -254,7 +313,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-III: ₹20 per kVA per month and ₹2.85 per kVAh.",
   },
   "HTS-IV": {
@@ -266,7 +325,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-IV: ₹220 per kVA per month and ₹4.15 per kVAh.",
   },
   "HTS-V": {
@@ -278,7 +337,7 @@ export const TARIFFS = {
     fixed: 225,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-V: ₹225 per kVA per month and ₹5.00 per kVAh.",
   },
   "HTS-VI": {
@@ -290,7 +349,7 @@ export const TARIFFS = {
     fixed: 100,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-VI: ₹100 per kVA per month and ₹4.35 per kVAh.",
   },
   "EHTS-I": {
@@ -302,7 +361,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-I: ₹120 per kVA per month and ₹5.55 per kVAh.",
   },
   "EHTS-II": {
@@ -314,7 +373,7 @@ export const TARIFFS = {
     fixed: 240,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-II: ₹240 per kVA per month and ₹4.10 per kVAh.",
   },
   "EHTS-III": {
@@ -326,7 +385,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-III: ₹220 per kVA per month and ₹4.75 per kVAh.",
   },
   TEMP: {
@@ -338,12 +397,119 @@ export const TARIFFS = {
     fixed: 0,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Connected load (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Temporary supply is charged at the relevant tariff plus 50%. This is a manual placeholder and must be adjusted before use.",
   },
 } satisfies Record<string, TariffConfig>;
 
 export type TariffKey = keyof typeof TARIFFS;
+
+/** Approved tariff 2025–26 (01-11-2025 to 31-03-2026). */
+const RATES_2025_26: Partial<Record<TariffKey, TariffRateSet>> = {
+  "LTDS-I": { kind: "flat", rates: [2.75], fixed: 30, fixedBasis: "connection", ed: 0.09 },
+  "LTDS-II": { kind: "slabs", rates: [2.8, 3.75, 4.8, 5, 5.4], fixed: 30, fixedBasis: "kW", ed: 0.09 },
+  "LTDS-III": { kind: "slabs", rates: [2.85, 3.8, 4.85, 5.05, 5.45], fixed: 30, fixedBasis: "kW", ed: 0.09 },
+  "NDS-I": { kind: "slabs3", rates: [4.5, 4.6, 5.5], fixed: 120, fixedBasis: "kW" },
+  "NDS-II": { kind: "slabs3", rates: [4.55, 4.65, 5.55], fixed: 120, fixedBasis: "kVA" },
+  "NDS-III": { kind: "flat", rates: [6.6], fixed: 160, fixedBasis: "kVA" },
+  "NDS-IV": { kind: "flat", rates: [5.0], fixed: 120, fixedBasis: "kVA" },
+  "NDS-V": { kind: "flat", rates: [2.8], fixed: 30, fixedBasis: "kW" },
+  "LTAS-I": { kind: "flat", rates: [2.85], fixed: 10, fixedBasis: "kW", ed: 0 },
+  "LTAS-II": { kind: "flat", rates: [2.9], fixed: 20, fixedBasis: "kVA", ed: 0 },
+  "LTAS-III": { kind: "flat", rates: [3.1], fixed: 20, fixedBasis: "kVA", ed: 0 },
+  "SPMS-LTDS-I": {
+    kind: "customSlabs",
+    thresholds: [500, 1000],
+    rates: [4.4, 4.5, 4.6],
+    fixed: 200,
+    fixedBasis: "kVA",
+  },
+  "LTPS-I": { kind: "flat", rates: [5.5], fixed: 220, fixedBasis: "kVA" },
+  "LTPS-II": { kind: "flat", rates: [5.5], fixed: 220, fixedBasis: "kW" },
+  "LTPS-III": { kind: "flat", rates: [5.5], fixed: 220, fixedBasis: "kW" },
+  "LTEV-I": { kind: "flat", rates: [4.3], fixed: 25, fixedBasis: "kVA" },
+  "HTS-I": { kind: "flat", rates: [5.4], fixed: 30, fixedBasis: "kVA" },
+  "HTS-II": { kind: "flat", rates: [5.5], fixed: 120, fixedBasis: "kVA" },
+  "HTS-III": { kind: "flat", rates: [2.8], fixed: 20, fixedBasis: "kVA" },
+  "HTS-IV": { kind: "flat", rates: [4.0], fixed: 220, fixedBasis: "kVA" },
+  "HTS-V": { kind: "flat", rates: [4.5], fixed: 220, fixedBasis: "kVA" },
+  "HTS-VI": { kind: "flat", rates: [4.25], fixed: 50, fixedBasis: "kVA" },
+  "EHTS-I": { kind: "flat", rates: [5.45], fixed: 120, fixedBasis: "kVA" },
+  "EHTS-II": { kind: "flat", rates: [3.95], fixed: 240, fixedBasis: "kVA" },
+  "EHTS-III": { kind: "flat", rates: [4.5], fixed: 220, fixedBasis: "kVA" },
+};
+
+/** Old tariff (before 01-11-2025). Only categories with a known old rate appear here. */
+const RATES_OLD: Partial<Record<TariffKey, TariffRateSet>> = {
+  "LTDS-II": {
+    kind: "slabs",
+    rates: [2.75, 4.8, 5.4],
+    thresholds: [150, 400],
+    labels: ["0–150", "151–400", "Above 400"],
+    fixed: 30,
+    fixedBasis: "kW",
+    ed: 0.09,
+  },
+  "NDS-I": {
+    kind: "slabs",
+    rates: [4.5, 4.7, 5.9],
+    thresholds: [150, 400],
+    labels: ["0–150", "151–400", "Above 400"],
+    fixed: 120,
+    fixedBasis: "kW",
+  },
+  "HTS-IV": { kind: "flat", rates: [4.35], fixed: 240, fixedBasis: "kW" },
+  "LTAS-I": { kind: "flat", rates: [2.85], fixed: 0, fixedBasis: "kW", ed: 0 },
+  "LTPS-II": { kind: "flat", rates: [5.5], fixed: 150, fixedBasis: "connection" },
+  "LTEV-I": { kind: "flat", rates: [4.3], fixed: 0, fixedBasis: "connection" },
+};
+
+export const TARIFF_SUBTYPES: Partial<
+  Record<TariffKey, { value: TariffSubtype; label: string }[]>
+> = {
+  "NDS-I": [
+    {
+      value: "three",
+      label: "LT Commercial – Three Phase (₹120/kW/month)",
+    },
+    {
+      value: "single",
+      label: "LT Commercial – Single Phase (₹50/kW/month)",
+    },
+  ],
+  "HTS-IV": [
+    { value: "large", label: "Large Industry" },
+    { value: "htcommercial", label: "HT Commercial" },
+  ],
+  "LTPS-II": [
+    { value: "municipal", label: "Municipal / Street Lighting" },
+    { value: "advert", label: "Advertisement / Neon Sign" },
+  ],
+  "LTEV-I": [
+    { value: "evlt", label: "EV Charging LT" },
+    { value: "evht", label: "EV Charging HT" },
+  ],
+};
+
+export function getSubtypeOptions(
+  category: TariffKey,
+): { value: TariffSubtype; label: string }[] {
+  return TARIFF_SUBTYPES[category] ?? [];
+}
+
+export function getDefaultSubtype(category: TariffKey): TariffSubtype {
+  return TARIFF_SUBTYPES[category]?.[0]?.value ?? "default";
+}
+
+export function getSubtypeLabel(
+  category: TariffKey,
+  subtype: TariffSubtype,
+): string {
+  return (
+    TARIFF_SUBTYPES[category]?.find((option) => option.value === subtype)
+      ?.label ?? "Standard"
+  );
+}
 
 export const TARIFF_GROUPS: { label: string; keys: TariffKey[] }[] = [
   {
@@ -435,12 +601,156 @@ export function billingDays(from: string, to: string): number | null {
   return Math.floor((end - start) / 86_400_000);
 }
 
-export interface BillInputs {
+export function tariffPeriodFor(date: string): TariffPeriodId {
+  if (date < "2025-11-01") return "old";
+  if (date < "2026-04-01") return "2025-26";
+  return "2026-27";
+}
+
+export function getTariffPeriod(id: TariffPeriodId): TariffPeriod {
+  return TARIFF_PERIODS.find((period) => period.id === id) ?? TARIFF_PERIODS[2];
+}
+
+export function edRateFor(date: string): number {
+  return date < "2026-04-01"
+    ? ED_RATE_BEFORE_APR_2026
+    : ED_RATE_FROM_APR_2026;
+}
+
+function fallbackLabels(kind: TariffKind): string[] {
+  if (kind === "flat") return ["All units"];
+  if (kind === "slabs3") return ["0–100", "101–200", "Above 200"];
+  if (kind === "customSlabs") return ["0–500", "501–1000", "Above 1000"];
+  return ["0–100", "101–200", "201–300", "301–400", "Above 400"];
+}
+
+function mergeRateSet(base: TariffConfig, rates: TariffRateSet): TariffConfig {
+  const sameKind = rates.kind === base.kind;
+
+  return {
+    ...base,
+    kind: rates.kind,
+    rates: rates.rates,
+    fixed: rates.fixed,
+    fixedBasis: rates.fixedBasis,
+    thresholds: rates.thresholds ?? (sameKind ? base.thresholds : undefined),
+    labels: rates.labels ?? (sameKind ? base.labels : fallbackLabels(rates.kind)),
+    ed: rates.ed === undefined ? base.ed : rates.ed,
+  };
+}
+
+/**
+ * Resolve the rates that apply to a category on a given date. Historical
+ * periods fall back to the approved 2025–26 table and then the current table.
+ */
+export function resolveTariff(
+  category: TariffKey,
+  periodStart: string,
+  subtype: TariffSubtype = "default",
+): TariffConfig {
+  const base = TARIFFS[category];
+  const period = tariffPeriodFor(periodStart);
+  let config: TariffConfig;
+
+  if (period === "old") {
+    const oldRates = RATES_OLD[category];
+    const fallback = RATES_2025_26[category];
+
+    config = oldRates
+      ? mergeRateSet(base, oldRates)
+      : fallback
+        ? mergeRateSet(base, fallback)
+        : base;
+
+    if (category === "HTS-IV" && subtype === "htcommercial") {
+      config = mergeRateSet(base, {
+        kind: "flat",
+        rates: [4.65],
+        fixed: 120,
+        fixedBasis: "kW",
+      });
+    }
+
+    if (category === "LTPS-II" && subtype === "advert") {
+      config = mergeRateSet(base, {
+        kind: "flat",
+        rates: [6.6],
+        fixed: 160,
+        fixedBasis: "connection",
+      });
+    }
+
+    if (category === "LTEV-I" && subtype === "evht") {
+      config = mergeRateSet(base, {
+        kind: "flat",
+        rates: [4.0],
+        fixed: 0,
+        fixedBasis: "connection",
+      });
+    }
+  } else if (period === "2025-26") {
+    const rates = RATES_2025_26[category];
+
+    config = rates ? mergeRateSet(base, rates) : base;
+
+    if (category === "HTS-IV" && subtype === "htcommercial") {
+      const htCommercial = RATES_2025_26["HTS-II"];
+      if (htCommercial) config = mergeRateSet(base, htCommercial);
+    }
+  } else {
+    config = base;
+  }
+
+  if (category === "NDS-I") {
+    config = {
+      ...config,
+      fixed: subtype === "single" ? 50 : 120,
+      fixedBasis: "kW",
+    };
+  }
+
+  return config;
+}
+
+export interface BillSegmentDates {
+  start: string;
+  end: string;
   days: number;
+}
+
+/** Split a billing window at the tariff cut-offs (01-11-2025, 01-04-2026). */
+export function segmentBillingPeriods(
+  from: string,
+  to: string,
+): BillSegmentDates[] {
+  if (!from || !to || to <= from) return [];
+
+  const points = [
+    from,
+    ...TARIFF_CUTOFFS.filter((cutoff) => cutoff > from && cutoff < to),
+    to,
+  ].sort();
+
+  const segments: BillSegmentDates[] = [];
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index];
+    const end = points[index + 1];
+    const days = billingDays(start, end);
+
+    if (days !== null && days > 0) segments.push({ start, end, days });
+  }
+
+  return segments;
+}
+
+export interface BillInputs {
+  from: string;
+  to: string;
   units: number;
   load: number;
   fppca: number;
-  edRate: number;
+  subtype?: TariffSubtype;
 }
 
 export interface SlabRow {
@@ -450,12 +760,34 @@ export interface SlabRow {
   amount: number;
 }
 
+export interface BillSegment {
+  period: TariffPeriodId;
+  label: string;
+  from: string;
+  to: string;
+  days: number;
+  units: number;
+  rows: SlabRow[];
+  energy: number;
+  edRate: number;
+  ed: number;
+  mc: number;
+  fixedRate: number;
+  fixedBasis: FixedBasis;
+  fixedLoad: number;
+  fixedLoadLabel: string;
+  fixed: number;
+  total: number;
+}
+
 export interface BillResult {
+  category: TariffKey;
+  subtype: TariffSubtype;
   unit: ConsumptionUnit;
   days: number;
   months: number;
-  exactLimit: number;
-  slabLimit: number;
+  calculatedLoad: number;
+  segments: BillSegment[];
   rows: SlabRow[];
   energy: number;
   ed: number;
@@ -463,39 +795,46 @@ export interface BillResult {
   fixed: number;
   fppca: number;
   total: number;
+  exactLimit: number;
+  slabLimit: number;
 }
 
-export function calculateBill(
+function splitSlabRows(
   config: TariffConfig,
-  inputs: BillInputs,
-): BillResult {
-  const { days, units, load, fppca, edRate } = inputs;
-  const months = days / FIXED_CHARGE_MONTH;
+  units: number,
+  days: number,
+): { rows: SlabRow[]; exactLimit: number; slabLimit: number } {
+  if (config.kind === "flat") {
+    const rate = config.rates[0] ?? 0;
+
+    return {
+      rows: [
+        {
+          label: config.labels[0] ?? "All units",
+          units,
+          rate,
+          amount: units * rate,
+        },
+      ],
+      exactLimit: 0,
+      slabLimit: 0,
+    };
+  }
+
   const baseThresholds = getBaseThresholds(config);
   const exactLimit = (baseThresholds[0] * days) / ENERGY_SLAB_MONTH;
-  const slabLimit = Math.round(exactLimit);
+  const thresholds = baseThresholds.map((threshold) =>
+    Math.round((threshold * days) / ENERGY_SLAB_MONTH),
+  );
 
-  let quantities: number[];
-
-  if (config.kind === "flat") {
-    quantities = [units];
-  } else {
-    const thresholds = baseThresholds.map((threshold) =>
-      Math.round((threshold * days) / ENERGY_SLAB_MONTH),
-    );
-
-    let previous = 0;
-    quantities = thresholds.map((threshold) => {
-      const limit = Math.max(0, threshold);
-      const quantity = Math.max(
-        0,
-        Math.min(limit - previous, units - previous),
-      );
-      previous = limit;
-      return quantity;
-    });
-    quantities.push(Math.max(0, units - previous));
-  }
+  let previous = 0;
+  const quantities = thresholds.map((threshold) => {
+    const limit = Math.max(0, threshold);
+    const quantity = Math.max(0, Math.min(limit - previous, units - previous));
+    previous = limit;
+    return quantity;
+  });
+  quantities.push(Math.max(0, units - previous));
 
   const rows: SlabRow[] = quantities.map((quantity, index) => ({
     label: config.labels[index] ?? "Remaining units",
@@ -504,27 +843,130 @@ export function calculateBill(
     amount: quantity * (config.rates[index] ?? 0),
   }));
 
-  const energy = rows.reduce((sum, row) => sum + row.amount, 0);
-  const ed = edRate * units;
-  const mc = MC_RATE * units;
-  const fixed =
-    config.fixed *
-    (config.fixedBasis === "connection" ? 1 : load) *
-    months;
-  const total = energy + ed + mc + fixed + fppca;
+  return { rows, exactLimit, slabLimit: thresholds[0] ?? 0 };
+}
 
-  return {
-    unit: getConsumptionUnit(config),
+export function calculateBill(
+  category: TariffKey,
+  inputs: BillInputs,
+): BillResult {
+  const { from, to, units, load, fppca } = inputs;
+  const subtype = inputs.subtype ?? getDefaultSubtype(category);
+  const days = billingDays(from, to) ?? 0;
+  const months = days / FIXED_CHARGE_MONTH;
+  const calculatedLoad = load * FIXED_LOAD_FACTOR;
+  const periodDates = segmentBillingPeriods(from, to);
+  const unit = getConsumptionUnit(TARIFFS[category]);
+
+  const empty: BillResult = {
+    category,
+    subtype,
+    unit,
     days,
     months,
-    exactLimit,
-    slabLimit,
+    calculatedLoad,
+    segments: [],
+    rows: [],
+    energy: 0,
+    ed: 0,
+    mc: 0,
+    fixed: 0,
+    fppca,
+    total: fppca,
+    exactLimit: 0,
+    slabLimit: 0,
+  };
+
+  if (days <= 0 || periodDates.length === 0) return empty;
+
+  let allocatedUnits = 0;
+  let exactLimit = 0;
+  let slabLimit = 0;
+  let firstSlabPeriod = true;
+
+  const segments: BillSegment[] = periodDates.map((segment, index) => {
+    const isLast = index === periodDates.length - 1;
+    const segmentUnits = isLast
+      ? Math.max(0, units - allocatedUnits)
+      : (units * segment.days) / days;
+    allocatedUnits += segmentUnits;
+
+    const config = resolveTariff(category, segment.start, subtype);
+    const split = splitSlabRows(config, segmentUnits, segment.days);
+
+    if (config.kind !== "flat" && firstSlabPeriod) {
+      exactLimit = split.exactLimit;
+      slabLimit = split.slabLimit;
+      firstSlabPeriod = false;
+    }
+
+    const energy = split.rows.reduce((sum, row) => sum + row.amount, 0);
+    const edRate = edRateFor(segment.start);
+    const ed = edRate * segmentUnits;
+    const mc = MC_RATE * segmentUnits;
+    const isOldTariff = segment.start < "2025-11-01";
+    const fixedLoad =
+      config.fixedBasis === "connection"
+        ? 1
+        : isOldTariff
+          ? load
+          : calculatedLoad;
+    const fixed = config.fixed * fixedLoad * (segment.days / FIXED_CHARGE_MONTH);
+
+    return {
+      period: tariffPeriodFor(segment.start),
+      label: getTariffPeriod(tariffPeriodFor(segment.start)).label,
+      from: segment.start,
+      to: segment.end,
+      days: segment.days,
+      units: segmentUnits,
+      rows: split.rows,
+      energy,
+      edRate,
+      ed,
+      mc,
+      fixedRate: config.fixed,
+      fixedBasis: config.fixedBasis,
+      fixedLoad,
+      fixedLoadLabel:
+        config.fixedBasis === "connection"
+          ? "Connection-based"
+          : isOldTariff
+            ? "Full sanctioned load"
+            : "Sanctioned load × 0.85",
+      fixed,
+      total: energy + ed + mc + fixed,
+    };
+  });
+
+  const rows = segments.flatMap((segment) =>
+    segment.rows.map((row) => ({
+      ...row,
+      label: `${segment.label} · ${row.label}`,
+    })),
+  );
+
+  const energy = segments.reduce((sum, segment) => sum + segment.energy, 0);
+  const ed = segments.reduce((sum, segment) => sum + segment.ed, 0);
+  const mc = segments.reduce((sum, segment) => sum + segment.mc, 0);
+  const fixed = segments.reduce((sum, segment) => sum + segment.fixed, 0);
+
+  return {
+    category,
+    subtype,
+    unit,
+    days,
+    months,
+    calculatedLoad,
+    segments,
     rows,
     energy,
     ed,
     mc,
     fixed,
     fppca,
-    total,
+    total: energy + ed + mc + fixed + fppca,
+    exactLimit,
+    slabLimit,
   };
 }

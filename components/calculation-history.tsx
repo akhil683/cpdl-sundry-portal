@@ -13,11 +13,12 @@ import {
 import {
   HISTORY_LIMIT,
   HISTORY_STORAGE_KEY,
+  HISTORY_UPDATED_EVENT,
   readHistory,
   writeHistory,
   type HistoryEntry,
 } from "@/lib/history";
-import { TARIFFS, getLoadLabel, getLoadUnit } from "@/lib/tariff";
+import { TARIFFS, getLoadLabel, getLoadUnit, getSubtypeLabel } from "@/lib/tariff";
 import {
   formatCurrency,
   formatDate,
@@ -47,7 +48,7 @@ function HistoryCard({
 
   const charges = [
     { label: "Energy", value: entry.energy },
-    { label: "EC / ED", value: entry.ed },
+    { label: "ED", value: entry.ed },
     { label: "MC", value: entry.mc },
     { label: "Fixed", value: entry.fixed },
     { label: "FPPCA", value: entry.fppca },
@@ -132,10 +133,23 @@ function HistoryCard({
                 </dd>
               </div>
               <div>
-                <dt>Electricity duty</dt>
+                <dt>Calculated load (85%)</dt>
+                <dd>
+                  {formatQuantity(
+                    entry.calculatedLoad ?? entry.load * 0.85,
+                  )}{" "}
+                  {loadUnit}
+                </dd>
+              </div>
+              <div>
+                <dt>Effective ED rate</dt>
                 <dd>
                   {formatCurrency(entry.edRate)} / {entry.unit}
                 </dd>
+              </div>
+              <div>
+                <dt>Tariff periods</dt>
+                <dd>{entry.segments?.length ?? 1}</dd>
               </div>
               <div>
                 <dt>Rounded slab limit</dt>
@@ -154,6 +168,51 @@ function HistoryCard({
                 <dd>{formatCurrency(entry.fppca)}</dd>
               </div>
             </dl>
+
+            {entry.segments && entry.segments.length > 0 ? (
+              <div className="history-periods">
+                {entry.segments.map((segment) => (
+                  <div
+                    className="history-period"
+                    key={`${segment.period}-${segment.from}`}
+                  >
+                    <div className="history-period-head">
+                      <strong>{segment.label}</strong>
+                      <span>
+                        {formatDate(segment.from)} – {formatDate(segment.to)} ·{" "}
+                        {segment.days} days
+                      </span>
+                    </div>
+                    <dl className="history-period-meta">
+                      <div>
+                        <dt>Units</dt>
+                        <dd>
+                          {formatQuantity(segment.units)} {entry.unit}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Energy</dt>
+                        <dd>{formatCurrency(segment.energy)}</dd>
+                      </div>
+                      <div>
+                        <dt>ED rate</dt>
+                        <dd>
+                          {formatCurrency(segment.edRate)} / {entry.unit}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Fixed charges</dt>
+                        <dd>{formatCurrency(segment.fixed)}</dd>
+                      </div>
+                      <div>
+                        <dt>Fixed basis</dt>
+                        <dd>{segment.fixedLoadLabel}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            ) : null}
 
             <div className="history-slab-table-wrap">
               <table className="data-table history-slab-table">
@@ -228,6 +287,9 @@ function HistoryPrintDocument({ entry }: { entry: HistoryEntry }) {
           <dt>Tariff category</dt>
           <dd>
             {entry.category} · {config.group}
+            {entry.subtype && entry.subtype !== "default"
+              ? ` · ${getSubtypeLabel(entry.category, entry.subtype)}`
+              : ""}
           </dd>
         </div>
         <div>
@@ -405,6 +467,7 @@ export function CalculationHistory() {
       return;
     }
 
+    window.dispatchEvent(new Event(HISTORY_UPDATED_EVENT));
     setEntries(next);
     setStorageError(null);
     setPrintingId((currentId) => {

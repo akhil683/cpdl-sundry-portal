@@ -1,11 +1,16 @@
 import {
   TARIFFS,
+  type BillSegment,
   type ConsumptionUnit,
+  type FixedBasis,
   type SlabRow,
   type TariffKey,
+  type TariffPeriodId,
+  type TariffSubtype,
 } from "@/lib/tariff";
 
 export const HISTORY_STORAGE_KEY = "cpdl-sundry-calculation-history-v1";
+export const HISTORY_UPDATED_EVENT = "cpdl:history-updated";
 export const HISTORY_LIMIT = 100;
 
 export interface HistoryEntry {
@@ -29,6 +34,9 @@ export interface HistoryEntry {
   mc: number;
   fixed: number;
   total: number;
+  subtype?: TariffSubtype;
+  calculatedLoad?: number;
+  segments?: BillSegment[];
 }
 
 export type HistorySnapshot = Omit<HistoryEntry, "id" | "createdAt">;
@@ -49,6 +57,38 @@ function isSlabRow(value: unknown): value is SlabRow {
     isNumber(row.units) &&
     isNumber(row.rate) &&
     isNumber(row.amount)
+  );
+}
+
+const PERIOD_IDS: TariffPeriodId[] = ["old", "2025-26", "2026-27"];
+const FIXED_BASES: FixedBasis[] = ["connection", "kW", "kVA"];
+
+function isBillSegment(value: unknown): value is BillSegment {
+  if (!value || typeof value !== "object") return false;
+
+  const segment = value as Record<string, unknown>;
+
+  return (
+    typeof segment.period === "string" &&
+    PERIOD_IDS.includes(segment.period as TariffPeriodId) &&
+    typeof segment.label === "string" &&
+    typeof segment.from === "string" &&
+    typeof segment.to === "string" &&
+    isNumber(segment.days) &&
+    isNumber(segment.units) &&
+    isNumber(segment.energy) &&
+    isNumber(segment.edRate) &&
+    isNumber(segment.ed) &&
+    isNumber(segment.mc) &&
+    isNumber(segment.fixedRate) &&
+    typeof segment.fixedBasis === "string" &&
+    FIXED_BASES.includes(segment.fixedBasis as FixedBasis) &&
+    isNumber(segment.fixedLoad) &&
+    typeof segment.fixedLoadLabel === "string" &&
+    isNumber(segment.fixed) &&
+    isNumber(segment.total) &&
+    Array.isArray(segment.rows) &&
+    segment.rows.every(isSlabRow)
   );
 }
 
@@ -82,7 +122,12 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     isNumber(entry.fixed) &&
     isNumber(entry.total) &&
     Array.isArray(entry.rows) &&
-    entry.rows.every(isSlabRow)
+    entry.rows.every(isSlabRow) &&
+    (entry.subtype === undefined || typeof entry.subtype === "string") &&
+    (entry.calculatedLoad === undefined ||
+      isNumber(entry.calculatedLoad)) &&
+    (entry.segments === undefined ||
+      (Array.isArray(entry.segments) && entry.segments.every(isBillSegment)))
   );
 }
 
@@ -141,7 +186,8 @@ function isSameCalculation(
     entry.units === snapshot.units &&
     entry.load === snapshot.load &&
     entry.fppca === snapshot.fppca &&
-    entry.edRate === snapshot.edRate
+    entry.edRate === snapshot.edRate &&
+    (entry.subtype ?? "default") === (snapshot.subtype ?? "default")
   );
 }
 
@@ -162,6 +208,10 @@ export function saveCalculation(
   };
 
   const saved = writeHistory([entry, ...current].slice(0, HISTORY_LIMIT));
+
+  if (saved && typeof window !== "undefined") {
+    window.dispatchEvent(new Event(HISTORY_UPDATED_EVENT));
+  }
 
   return saved ? "saved" : "unavailable";
 }

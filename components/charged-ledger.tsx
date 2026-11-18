@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  CircleAlert,
   Info,
   MoveHorizontal,
   Plus,
@@ -11,30 +12,29 @@ import {
   Trash2,
 } from "lucide-react";
 import { billingDays } from "@/lib/tariff";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatQuantity } from "@/lib/format";
+import {
+  LEDGER_AMOUNT_FIELDS,
+  numericValue,
+  readLedger,
+  writeLedger,
+  type LedgerEntry,
+} from "@/lib/ledger";
 
-const AMOUNT_FIELDS = [
-  "energy",
-  "duty",
-  "mc",
-  "fppca",
-  "fixed",
-  "solar",
-] as const;
-
-type AmountField = (typeof AMOUNT_FIELDS)[number];
 type EntryField = Exclude<keyof Entry, "id">;
 
 interface Entry {
   id: number;
   from: string;
   to: string;
+  units: string;
   energy: string;
-  duty: string;
-  mc: string;
-  fppca: string;
   fixed: string;
+  mc: string;
+  ed: string;
   solar: string;
+  fppca: string;
+  others: string;
 }
 
 function createEntry(id: number): Entry {
@@ -42,23 +42,19 @@ function createEntry(id: number): Entry {
     id,
     from: "",
     to: "",
+    units: "",
     energy: "",
-    duty: "",
-    mc: "",
-    fppca: "",
     fixed: "",
+    mc: "",
+    ed: "",
     solar: "",
+    fppca: "",
+    others: "",
   };
 }
 
-function numericValue(value: string): number {
-  if (value.trim() === "") return 0;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-}
-
 function entryTotal(entry: Entry): number {
-  return AMOUNT_FIELDS.reduce(
+  return LEDGER_AMOUNT_FIELDS.reduce(
     (sum, field) => sum + numericValue(entry[field]),
     0,
   );
@@ -69,11 +65,65 @@ function entryDays(entry: Entry): number | null {
   return days !== null && days > 0 ? days : null;
 }
 
+function toLedgerEntry(entry: Entry): LedgerEntry {
+  return {
+    id: String(entry.id),
+    from: entry.from,
+    to: entry.to,
+    units: entry.units,
+    energy: entry.energy,
+    fixed: entry.fixed,
+    mc: entry.mc,
+    ed: entry.ed,
+    solar: entry.solar,
+    fppca: entry.fppca,
+    others: entry.others,
+  };
+}
+
 export function ChargedLedger() {
   const [entries, setEntries] = useState<Entry[]>(() => [createEntry(1)]);
+  const [loaded, setLoaded] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
   const nextId = useRef(2);
   const pendingFocusId = useRef<number | null>(null);
   const resetDialog = useRef<HTMLDialogElement | null>(null);
+
+  useEffect(() => {
+    const stored = readLedger();
+
+    if (stored.length > 0) {
+      const restored = stored.map((entry, index) => ({
+        ...createEntry(index + 1),
+        from: entry.from,
+        to: entry.to,
+        units: entry.units,
+        energy: entry.energy,
+        fixed: entry.fixed,
+        mc: entry.mc,
+        ed: entry.ed,
+        solar: entry.solar,
+        fppca: entry.fppca,
+        others: entry.others,
+      }));
+
+      setEntries(restored);
+      nextId.current = restored.length + 1;
+    }
+
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+
+    const saved = writeLedger(entries.map(toLedgerEntry));
+    setStorageError(
+      saved
+        ? null
+        : "Browser storage could not be updated. This sheet may not be available on the net summary.",
+    );
+  }, [entries, loaded]);
 
   useEffect(() => {
     const id = pendingFocusId.current;
@@ -89,24 +139,28 @@ export function ChargedLedger() {
       (accumulator, entry) => {
         const days = entryDays(entry);
 
+        accumulator.units += numericValue(entry.units);
         accumulator.energy += numericValue(entry.energy);
-        accumulator.duty += numericValue(entry.duty);
+        accumulator.ed += numericValue(entry.ed);
         accumulator.mc += numericValue(entry.mc);
         accumulator.fppca += numericValue(entry.fppca);
         accumulator.fixed += numericValue(entry.fixed);
         accumulator.solar += numericValue(entry.solar);
+        accumulator.others += numericValue(entry.others);
         accumulator.grand += entryTotal(entry);
         if (days !== null) accumulator.days += days;
 
         return accumulator;
       },
       {
+        units: 0,
         energy: 0,
-        duty: 0,
+        ed: 0,
         mc: 0,
         fppca: 0,
         fixed: 0,
         solar: 0,
+        others: 0,
         days: 0,
         grand: 0,
       },
@@ -117,15 +171,14 @@ export function ChargedLedger() {
     (entry) =>
       entry.from !== "" ||
       entry.to !== "" ||
-      AMOUNT_FIELDS.some((field) => entry[field].trim() !== ""),
+      entry.units.trim() !== "" ||
+      LEDGER_AMOUNT_FIELDS.some((field) => entry[field].trim() !== ""),
   );
 
   function updateEntry(id: number, field: EntryField, value: string) {
-    if (
-      AMOUNT_FIELDS.includes(field as AmountField) &&
-      value !== "" &&
-      Number(value) < 0
-    ) {
+    const numericFields: EntryField[] = ["units", ...LEDGER_AMOUNT_FIELDS];
+
+    if (numericFields.includes(field) && value !== "" && Number(value) < 0) {
       return;
     }
 
@@ -174,12 +227,16 @@ export function ChargedLedger() {
       value: totals.days.toLocaleString("en-IN"),
     },
     {
+      label: "Total units",
+      value: formatQuantity(totals.units),
+    },
+    {
       label: "Total energy",
       value: formatCurrency(totals.energy),
     },
     {
-      label: "Total EC / ED",
-      value: formatCurrency(totals.duty),
+      label: "Total ED",
+      value: formatCurrency(totals.ed),
     },
     {
       label: "Total MC",
@@ -197,6 +254,10 @@ export function ChargedLedger() {
       label: "Total solar charges",
       value: formatCurrency(totals.solar),
     },
+    {
+      label: "Total others",
+      value: formatCurrency(totals.others),
+    },
   ];
 
   return (
@@ -207,9 +268,6 @@ export function ChargedLedger() {
             <span className="card-index">01</span>
             <div>
               <h2>Charge entry sheet</h2>
-              <p className="card-sub">
-                Record billed periods and each applied charge head.
-              </p>
             </div>
           </div>
 
@@ -231,20 +289,21 @@ export function ChargedLedger() {
               <col className="col-date" />
               <col className="col-date" />
               <col className="col-days" />
-              <col className="col-amount" />
-              <col className="col-amount" />
-              <col className="col-amount" />
+              <col className="col-units" />
               <col className="col-amount" />
               <col className="col-fixed" />
+              <col className="col-amount" />
+              <col className="col-amount" />
               <col className="col-solar" />
+              <col className="col-amount" />
+              <col className="col-others" />
               <col className="col-total" />
               <col className="col-action" />
             </colgroup>
             <thead>
               <tr>
                 <th scope="col" className="cell-index">
-                  <span className="sr-only">Entry number</span>
-                  #
+                  <span className="sr-only">Entry number</span>#
                 </th>
                 <th scope="col">From date</th>
                 <th scope="col">To date</th>
@@ -252,22 +311,28 @@ export function ChargedLedger() {
                   Days
                 </th>
                 <th scope="col" className="num">
-                  Energy
+                  Units
                 </th>
                 <th scope="col" className="num">
-                  EC / ED
+                  Energy charge
+                </th>
+                <th scope="col" className="num">
+                  Fixed charges
                 </th>
                 <th scope="col" className="num">
                   MC
                 </th>
                 <th scope="col" className="num">
+                  ED
+                </th>
+                <th scope="col" className="num">
+                  Solar
+                </th>
+                <th scope="col" className="num">
                   FPPCA
                 </th>
                 <th scope="col" className="num">
-                  Fixed charge
-                </th>
-                <th scope="col" className="num">
-                  Solar user charges
+                  Others
                 </th>
                 <th scope="col" className="num">
                   Row total
@@ -305,6 +370,7 @@ export function ChargedLedger() {
                         className="ledger-input ledger-date"
                         type="date"
                         value={entry.to}
+                        min={entry.from || undefined}
                         onChange={(event) =>
                           updateEntry(entry.id, "to", event.target.value)
                         }
@@ -329,56 +395,26 @@ export function ChargedLedger() {
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
+                        value={entry.units}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "units", event.target.value)
+                        }
+                        aria-label={`Units, ${rowLabel}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
                         value={entry.energy}
                         onChange={(event) =>
                           updateEntry(entry.id, "energy", event.target.value)
                         }
                         aria-label={`Energy charges, ${rowLabel}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="ledger-input ledger-amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        value={entry.duty}
-                        onChange={(event) =>
-                          updateEntry(entry.id, "duty", event.target.value)
-                        }
-                        aria-label={`EC or ED charges, ${rowLabel}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="ledger-input ledger-amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        value={entry.mc}
-                        onChange={(event) =>
-                          updateEntry(entry.id, "mc", event.target.value)
-                        }
-                        aria-label={`MC charges, ${rowLabel}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="ledger-input ledger-amount"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        value={entry.fppca}
-                        onChange={(event) =>
-                          updateEntry(entry.id, "fppca", event.target.value)
-                        }
-                        aria-label={`FPPCA charges, ${rowLabel}`}
                       />
                     </td>
                     <td>
@@ -404,6 +440,36 @@ export function ChargedLedger() {
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
+                        value={entry.mc}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "mc", event.target.value)
+                        }
+                        aria-label={`MC charges, ${rowLabel}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={entry.ed}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "ed", event.target.value)
+                        }
+                        aria-label={`Electricity duty, ${rowLabel}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
                         value={entry.solar}
                         onChange={(event) =>
                           updateEntry(entry.id, "solar", event.target.value)
@@ -411,7 +477,39 @@ export function ChargedLedger() {
                         aria-label={`Solar user charges, ${rowLabel}`}
                       />
                     </td>
-                    <td className="row-total">{formatCurrency(entryTotal(entry))}</td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={entry.fppca}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "fppca", event.target.value)
+                        }
+                        aria-label={`FPPCA charges, ${rowLabel}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={entry.others}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "others", event.target.value)
+                        }
+                        aria-label={`Other charges, ${rowLabel}`}
+                      />
+                    </td>
+                    <td className="row-total">
+                      {formatCurrency(entryTotal(entry))}
+                    </td>
                     <td className="cell-action">
                       <button
                         className="row-remove"
@@ -425,7 +523,11 @@ export function ChargedLedger() {
                             : `Remove ${rowLabel}`
                         }
                       >
-                        <Trash2 size={14} strokeWidth={1.8} aria-hidden="true" />
+                        <Trash2
+                          size={14}
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                        />
                       </button>
                     </td>
                   </tr>
@@ -440,17 +542,16 @@ export function ChargedLedger() {
           Scroll horizontally to view all charge heads.
         </div>
 
-        <div className="sheet-note">
-          <Info size={13} strokeWidth={1.8} aria-hidden="true" />
-          <p>
-            Blank amount fields count as zero. Billing days are calculated as
-            the to date minus the from date; the from date is excluded.
-          </p>
-        </div>
+        {storageError ? (
+          <div className="ledger-storage-error" role="alert">
+            <CircleAlert size={14} strokeWidth={1.8} aria-hidden="true" />
+            <p>{storageError}</p>
+          </div>
+        ) : null}
 
         <div className="sheet-footer">
           <p className="sheet-footer-meta">
-            Totals update automatically. All amounts are in INR.
+            Totals update automatically.
           </p>
           <div className="sheet-actions">
             <button
@@ -489,12 +590,8 @@ export function ChargedLedger() {
             <span className="card-index">02</span>
             <div>
               <h2>Charge summary</h2>
-              <p className="card-sub">
-                Consolidated totals across every entry in the sheet.
-              </p>
             </div>
           </div>
-          <span className="card-tag">Auto-calculated</span>
         </div>
 
         <div className="summary-layout">
@@ -513,15 +610,6 @@ export function ChargedLedger() {
               <div className="grand-amount">
                 {formatCurrency(totals.grand)}
               </div>
-            </div>
-
-            <div>
-              <div className="grand-divider" />
-              <p className="grand-note">
-                Includes energy, EC/ED, MC, FPPCA, fixed and solar user charges
-                across {entries.length}{" "}
-                {entries.length === 1 ? "entry" : "entries"}.
-              </p>
             </div>
           </div>
         </div>

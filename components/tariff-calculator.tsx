@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
   BookOpen,
   Calculator,
   Check,
@@ -19,16 +18,23 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import {
+  ED_RATE_BEFORE_APR_2026,
+  ED_RATE_FROM_APR_2026,
+  FIXED_LOAD_FACTOR,
   TARIFFS,
   TARIFF_GROUPS,
   billingDays,
   calculateBill,
-  getBaseThresholds,
+  getDefaultSubtype,
+  getSubtypeLabel,
+  getSubtypeOptions,
   getConsumptionUnit,
   getLoadLabel,
   getLoadUnit,
   type BillResult,
+  type BillSegment,
   type TariffKey,
+  type TariffSubtype,
 } from "@/lib/tariff";
 import {
   formatCurrency,
@@ -40,15 +46,19 @@ import {
   saveCalculation,
   type SaveCalculationStatus,
 } from "@/lib/history";
+import {
+  CONSUMER_UPDATED_EVENT,
+  readConsumer,
+} from "@/lib/consumer";
 
 interface FormState {
   category: TariffKey;
+  subtype: TariffSubtype;
   from: string;
   to: string;
   units: string;
   load: string;
   fppca: string;
-  edRate: string;
 }
 
 interface FormErrors {
@@ -56,14 +66,11 @@ interface FormErrors {
   units?: string;
   load?: string;
   fppca?: string;
-  edRate?: string;
 }
 
 interface Estimate extends BillResult {
-  category: TariffKey;
   units: number;
   load: number;
-  edRate: number;
 }
 
 type StatusTone = "idle" | "success" | "error";
@@ -76,12 +83,12 @@ interface StatusState {
 
 const INITIAL_FORM: FormState = {
   category: "LTDS-II",
+  subtype: getDefaultSubtype("LTDS-II"),
   from: "",
   to: "",
   units: "800",
   load: "5",
   fppca: "0",
-  edRate: "0.09",
 };
 
 const INITIAL_STATUS: StatusState = {
@@ -93,30 +100,44 @@ function parseAmount(value: string): number {
   return value.trim() === "" ? 0 : Number(value);
 }
 
+function rateList(segment: BillSegment, unit: string): string {
+  return `${formatCurrency(segment.edRate)} / ${unit}`;
+}
+
 function buildReport(
   estimate: Estimate,
   dates: { from: string; to: string },
 ): string {
   const config = TARIFFS[estimate.category];
-  const baseThresholds = getBaseThresholds(config);
   const fixedUnit =
     config.fixedBasis === "connection" ? "connection" : config.fixedBasis;
   const lines = [
     "CPDL — SUNDRY BILL ESTIMATE",
     `Category: ${estimate.category}`,
+    `Tariff subtype: ${getSubtypeLabel(estimate.category, estimate.subtype)}`,
     `Billing period: ${dates.from} to ${dates.to}`,
     `Billing days (elapsed): ${estimate.days}`,
     `Consumption: ${formatQuantity(estimate.units)} ${estimate.unit}`,
     `${getLoadLabel(config)}: ${formatQuantity(estimate.load)} ${getLoadUnit(config)}`,
+    `Calculated load (${FIXED_LOAD_FACTOR * 100}%): ${formatQuantity(estimate.calculatedLoad)} ${getLoadUnit(config)}`,
     `Fixed-charge months (days ÷ 30.4167): ${formatMonths(estimate.months)}`,
+    "",
+    `TARIFF PERIODS APPLIED: ${estimate.segments.length}`,
   ];
 
-  if (config.kind !== "flat") {
+  estimate.segments.forEach((segment) => {
     lines.push(
-      `First slab entitlement (${baseThresholds[0]} × days ÷ 30): ${estimate.exactLimit.toFixed(4)}`,
-      `Rounded energy slab limit: ${estimate.slabLimit} ${estimate.unit}`,
+      "",
+      `${segment.label} · ${segment.from} to ${segment.to} · ${segment.days} days · ${formatQuantity(segment.units)} ${estimate.unit}`,
+      ...segment.rows.map(
+        (row) =>
+          `  ${row.label}: ${formatQuantity(row.units)} × ${formatCurrency(row.rate)} = ${formatCurrency(row.amount)}`,
+      ),
+      `  Energy: ${formatCurrency(segment.energy)}`,
+      `  ED (${rateList(segment, estimate.unit)}): ${formatCurrency(segment.ed)}`,
+      `  Fixed charges (${segment.fixedLoadLabel}): ${formatCurrency(segment.fixed)}`,
     );
-  }
+  });
 
   lines.push(
     "",
@@ -128,7 +149,7 @@ function buildReport(
     `Energy charges: ${formatCurrency(estimate.energy)}`,
     "",
     "OTHER CHARGES",
-    `Electricity duty (${formatCurrency(estimate.edRate)} / ${estimate.unit}): ${formatCurrency(estimate.ed)}`,
+    `Electricity duty (date-wise 0.12 → 0.16): ${formatCurrency(estimate.ed)}`,
     `MC tax (₹0.16 / ${estimate.unit}): ${formatCurrency(estimate.mc)}`,
     `Fixed charges (${formatCurrency(config.fixed)} / ${fixedUnit} / month × ${formatMonths(estimate.months)} months): ${formatCurrency(estimate.fixed)}`,
     `FPPCA: ${formatCurrency(estimate.fppca)}`,
@@ -160,6 +181,15 @@ function buildReport(
   return lines.join("\n");
 }
 
+function segmentNote(segment: BillSegment): string {
+  if (segment.fixedBasis === "connection") {
+    return segment.fixedLoadLabel;
+  }
+
+  return `${segment.fixedLoadLabel} · ${formatQuantity(segment.fixedLoad)} ${segment.fixedBasis
+    }`;
+}
+
 export function TariffCalculator() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -171,6 +201,11 @@ export function TariffCalculator() {
 
   const reportRef = useRef("");
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<FormState>(INITIAL_FORM);
+
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
 
   useEffect(() => {
     return () => {
@@ -178,12 +213,44 @@ export function TariffCalculator() {
     };
   }, []);
 
+  useEffect(() => {
+    function syncConsumerLoad() {
+      const { load } = readConsumer();
+      if (load.trim() === "" || formRef.current.load === load) return;
+
+      setForm((current) => ({ ...current, load }));
+      setEstimate(null);
+      setErrors({});
+      setStatus(INITIAL_STATUS);
+      setCopyState("idle");
+      setHistoryStatus(null);
+      reportRef.current = "";
+      if (copyTimer.current) {
+        clearTimeout(copyTimer.current);
+        copyTimer.current = null;
+      }
+    }
+
+    syncConsumerLoad();
+    window.addEventListener(CONSUMER_UPDATED_EVENT, syncConsumerLoad);
+
+    return () => {
+      window.removeEventListener(CONSUMER_UPDATED_EVENT, syncConsumerLoad);
+    };
+  }, []);
+
   const config = TARIFFS[form.category];
   const unit = getConsumptionUnit(config);
   const loadUnit = getLoadUnit(config);
   const loadLabel = getLoadLabel(config);
+  const subtypeOptions = getSubtypeOptions(form.category);
   const liveDays = billingDays(form.from, form.to);
   const visibleDays = liveDays !== null && liveDays > 0 ? liveDays : null;
+  const liveLoad = form.load.trim() === "" ? null : parseAmount(form.load);
+  const visibleCalculatedLoad =
+    liveLoad !== null && Number.isFinite(liveLoad) && liveLoad >= 0
+      ? liveLoad * FIXED_LOAD_FACTOR
+      : null;
 
   function clearCopyTimer() {
     if (copyTimer.current) {
@@ -212,21 +279,21 @@ export function TariffCalculator() {
   }
 
   function updateField(field: keyof FormState, value: string) {
-    setForm((current) => {
-      if (field === "category") {
-        const category = value as TariffKey;
-        const selected = TARIFFS[category];
+    setForm((current) => ({ ...current, [field]: value }));
+    clearCalculatedState();
+  }
 
-        return {
-          ...current,
-          category,
-          edRate: (selected.ed ?? 0).toFixed(2),
-        };
-      }
+  function handleCategoryChange(category: TariffKey) {
+    setForm((current) => ({
+      ...current,
+      category,
+      subtype: getDefaultSubtype(category),
+    }));
+    clearCalculatedState();
+  }
 
-      return { ...current, [field]: value };
-    });
-
+  function handleSubtypeChange(subtype: TariffSubtype) {
+    setForm((current) => ({ ...current, subtype }));
     clearCalculatedState();
   }
 
@@ -238,8 +305,6 @@ export function TariffCalculator() {
     const units = parseAmount(form.units);
     const load = parseAmount(form.load);
     const fppca = parseAmount(form.fppca);
-    const edValue = form.edRate.trim();
-    const edRate = Number(edValue);
 
     if (!form.from || !form.to) {
       nextErrors.dates = "Select both the from and to dates.";
@@ -254,19 +319,11 @@ export function TariffCalculator() {
     }
 
     if (form.load.trim() === "" || !Number.isFinite(load) || load < 0) {
-      nextErrors.load = "Enter the connected load as zero or more.";
+      nextErrors.load = "Enter the sanctioned load as zero or more.";
     }
 
     if (!Number.isFinite(fppca) || fppca < 0) {
       nextErrors.fppca = "Enter a valid FPPCA amount.";
-    }
-
-    if (
-      edValue === "" ||
-      !Number.isFinite(edRate) ||
-      edRate < 0
-    ) {
-      nextErrors.edRate = "Enter a valid electricity duty rate.";
     }
 
     if (days === null || days <= 0) {
@@ -293,31 +350,33 @@ export function TariffCalculator() {
       return;
     }
 
-    const calculated = calculateBill(config, {
-      days,
+    const calculated = calculateBill(form.category, {
+      from: form.from,
+      to: form.to,
       units,
       load,
       fppca,
-      edRate,
+      subtype: form.subtype,
     });
 
     const nextEstimate: Estimate = {
       ...calculated,
-      category: form.category,
       units,
       load,
-      edRate,
     };
+
+    const effectiveEdRate = units > 0 ? calculated.ed / units : 0;
 
     const saveStatus = saveCalculation({
       category: nextEstimate.category,
+      subtype: nextEstimate.subtype,
       from: form.from,
       to: form.to,
       days: nextEstimate.days,
       units: nextEstimate.units,
       load: nextEstimate.load,
       fppca: nextEstimate.fppca,
-      edRate: nextEstimate.edRate,
+      edRate: effectiveEdRate,
       unit: nextEstimate.unit,
       months: nextEstimate.months,
       exactLimit: nextEstimate.exactLimit,
@@ -328,6 +387,8 @@ export function TariffCalculator() {
       mc: nextEstimate.mc,
       fixed: nextEstimate.fixed,
       total: nextEstimate.total,
+      calculatedLoad: nextEstimate.calculatedLoad,
+      segments: nextEstimate.segments,
     });
 
     setEstimate(nextEstimate);
@@ -338,10 +399,10 @@ export function TariffCalculator() {
       tone: "success",
       message:
         saveStatus === "unavailable"
-          ? `Estimate prepared for ${form.category} across ${days} billing days. It could not be saved to browser history.`
+          ? `Estimate prepared for ${form.category} across ${days} billing days and ${nextEstimate.segments.length} tariff period(s). It could not be saved to browser history.`
           : saveStatus === "duplicate"
-            ? `Estimate prepared for ${form.category} across ${days} billing days. This calculation is already in history.`
-            : `Estimate prepared for ${form.category} across ${days} billing days and saved to history.`,
+            ? `Estimate prepared for ${form.category} across ${days} billing days and ${nextEstimate.segments.length} tariff period(s). This calculation is already in history.`
+            : `Estimate prepared for ${form.category} across ${days} billing days and ${nextEstimate.segments.length} tariff period(s), and saved to history.`,
     });
     reportRef.current = buildReport(nextEstimate, {
       from: form.from,
@@ -376,13 +437,11 @@ export function TariffCalculator() {
         ? "Copy failed"
         : "Copy report";
 
-  const metaSlabLabel =
-    config.kind === "flat" ? "Energy rate" : "Slab limit";
-  const metaSlabValue = estimate
-    ? config.kind === "flat"
-      ? formatCurrency(config.rates[0])
-      : `${estimate.slabLimit} ${estimate.unit}`
-    : "—";
+  const edMeta = hasEstimate
+    ? `${Array.from(new Set(estimate.segments.map((segment) => segment.edRate)))
+      .map((rate) => `${formatCurrency(rate)} / ${estimate.unit}`)
+      .join(" · ")} by date`
+    : `₹${ED_RATE_BEFORE_APR_2026.toFixed(2)} → ₹${ED_RATE_FROM_APR_2026.toFixed(2)} by date`;
 
   const statusIcon =
     status.tone === "success" ? (
@@ -401,21 +460,12 @@ export function TariffCalculator() {
             <span className="card-index">01</span>
             <div>
               <h2>Billing inputs</h2>
-              <p className="card-sub">
-                Set the billing window, tariff category and consumption.
-              </p>
             </div>
           </div>
         </div>
 
         <div className="card-body">
           <fieldset className="form-section">
-            <legend className="form-section-title">Billing period</legend>
-            <p className="form-section-note" id="period-hint">
-              Charges are prorated across the elapsed billing period. The from
-              date is excluded from the day count.
-            </p>
-
             <div className="period-grid">
               <div className="field">
                 <label className="field-label" htmlFor="from-date">
@@ -470,16 +520,17 @@ export function TariffCalculator() {
                 {errors.dates}
               </p>
             ) : null}
+
           </fieldset>
 
           <fieldset className="form-section">
             <legend className="form-section-title">
               Tariff &amp; consumption
             </legend>
-            <p className="form-section-note">
+            {/* <p className="form-section-note">
               Choose the applicable category and enter the metered values for
               this period.
-            </p>
+            </p> */}
 
             <div className="field">
               <label className="field-label" htmlFor="tariff-category">
@@ -491,7 +542,7 @@ export function TariffCalculator() {
                   className="control"
                   value={form.category}
                   onChange={(event) =>
-                    updateField("category", event.target.value)
+                    handleCategoryChange(event.target.value as TariffKey)
                   }
                   aria-describedby="category-hint"
                 >
@@ -509,13 +560,30 @@ export function TariffCalculator() {
               </div>
             </div>
 
-            <div className="context-note" id="category-hint">
-              <Info size={14} strokeWidth={1.8} aria-hidden="true" />
-              <p>
-                {config.hint} Consumption and slab thresholds are expressed in{" "}
-                {unit}.
-              </p>
-            </div>
+            {subtypeOptions.length > 0 ? (
+              <div className="field subtype-field">
+                <label className="field-label" htmlFor="tariff-subtype">
+                  Tariff subtype
+                </label>
+                <div className="select-wrap">
+                  <select
+                    id="tariff-subtype"
+                    className="control"
+                    value={form.subtype}
+                    onChange={(event) =>
+                      handleSubtypeChange(event.target.value as TariffSubtype)
+                    }
+                  >
+                    {subtypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} strokeWidth={1.8} aria-hidden="true" />
+                </div>
+              </div>
+            ) : null}
 
             <div className="form-grid">
               <div className="field">
@@ -585,6 +653,23 @@ export function TariffCalculator() {
               </div>
 
               <div className="field">
+                <span className="field-label">
+                  Calculated load ({FIXED_LOAD_FACTOR * 100}%)
+                </span>
+                <div
+                  className={`readout${visibleCalculatedLoad === null ? " is-empty" : ""
+                    }`}
+                >
+                  <strong>
+                    {visibleCalculatedLoad !== null
+                      ? formatQuantity(visibleCalculatedLoad)
+                      : "—"}
+                  </strong>
+                  <span className="readout-unit">{loadUnit}</span>
+                </div>
+              </div>
+
+              <div className="field">
                 <label className="field-label" htmlFor="fppca">
                   FPPCA amount
                 </label>
@@ -613,40 +698,6 @@ export function TariffCalculator() {
                       aria-hidden="true"
                     />
                     {errors.fppca}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="field">
-                <label className="field-label" htmlFor="ed-rate">
-                  Electricity duty
-                </label>
-                <div className="input-group">
-                  <input
-                    id="ed-rate"
-                    className="control control-prefix control-suffix control-suffix-wide"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    value={form.edRate}
-                    onChange={(event) =>
-                      updateField("edRate", event.target.value)
-                    }
-                    aria-invalid={errors.edRate ? true : undefined}
-                    aria-describedby={errors.edRate ? "ed-error" : undefined}
-                  />
-                  <span className="affix affix-prefix">₹</span>
-                  <span className="affix affix-suffix affix-rate">/ unit</span>
-                </div>
-                {errors.edRate ? (
-                  <p className="field-error" id="ed-error">
-                    <CircleAlert
-                      size={12}
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                    {errors.edRate}
                   </p>
                 ) : null}
               </div>
@@ -686,7 +737,7 @@ export function TariffCalculator() {
 
             <p className="estimate-caption">
               {hasEstimate
-                ? `${formatQuantity(estimate.units)} ${estimate.unit} evaluated over ${estimate.days} billing days.`
+                ? `${formatQuantity(estimate.units)} ${estimate.unit} evaluated over ${estimate.days} billing days and ${estimate.segments.length} tariff period(s).`
                 : "Complete the billing inputs to generate an itemised estimate."}
             </p>
 
@@ -702,8 +753,8 @@ export function TariffCalculator() {
                 </strong>
               </div>
               <div>
-                <span>{metaSlabLabel}</span>
-                <strong>{metaSlabValue}</strong>
+                <span>Tariff periods</span>
+                <strong>{hasEstimate ? estimate.segments.length : "—"}</strong>
               </div>
             </div>
           </div>
@@ -715,7 +766,7 @@ export function TariffCalculator() {
                   <span className="line-item-label">Energy charges</span>
                   <span className="line-item-meta">
                     {hasEstimate
-                      ? `${formatQuantity(estimate.units)} ${estimate.unit} at slab rates`
+                      ? `${formatQuantity(estimate.units)} ${estimate.unit} at period-wise slab rates`
                       : "Slab-wise energy rates"}
                   </span>
                 </div>
@@ -729,11 +780,7 @@ export function TariffCalculator() {
               <div className="line-item">
                 <div>
                   <span className="line-item-label">Electricity duty</span>
-                  <span className="line-item-meta">
-                    {hasEstimate
-                      ? `${formatCurrency(estimate.edRate)} / ${estimate.unit}`
-                      : "Applicable per-unit duty"}
-                  </span>
+                  <span className="line-item-meta">{edMeta}</span>
                 </div>
                 <span
                   className={`line-item-value${hasEstimate ? "" : " is-empty"}`}
@@ -745,9 +792,6 @@ export function TariffCalculator() {
               <div className="line-item">
                 <div>
                   <span className="line-item-label">MC tax</span>
-                  <span className="line-item-meta">
-                    ₹0.16 / {hasEstimate ? estimate.unit : "unit"}
-                  </span>
                 </div>
                 <span
                   className={`line-item-value${hasEstimate ? "" : " is-empty"}`}
@@ -759,15 +803,6 @@ export function TariffCalculator() {
               <div className="line-item">
                 <div>
                   <span className="line-item-label">Fixed charges</span>
-                  <span className="line-item-meta">
-                    {hasEstimate
-                      ? `${formatCurrency(config.fixed)} / ${
-                          config.fixedBasis === "connection"
-                            ? "connection"
-                            : config.fixedBasis
-                        } · ${formatMonths(estimate.months)} months`
-                      : "Prorated by billing days"}
-                  </span>
                 </div>
                 <span
                   className={`line-item-value${hasEstimate ? "" : " is-empty"}`}
@@ -779,9 +814,6 @@ export function TariffCalculator() {
               <div className="line-item">
                 <div>
                   <span className="line-item-label">FPPCA</span>
-                  <span className="line-item-meta">
-                    As entered for the period
-                  </span>
                 </div>
                 <span
                   className={`line-item-value${hasEstimate ? "" : " is-empty"}`}
@@ -799,19 +831,9 @@ export function TariffCalculator() {
               <p>{status.message}</p>
             </div>
 
-            {showEligibilityWarning ? (
-              <div className="eligibility-note">
-                <Info size={14} strokeWidth={1.8} aria-hidden="true" />
-                <p>
-                  LTDS-I is marked for connected loads below 250 W. Confirm the
-                  consumer&apos;s eligibility before use.
-                </p>
-              </div>
-            ) : null}
-
             <div className="estimate-actions">
               <button
-                className="btn btn-primary btn-print"
+                className="btn btn-secondary btn-print"
                 type="button"
                 onClick={() => window.print()}
                 disabled={!hasEstimate}
@@ -833,27 +855,16 @@ export function TariffCalculator() {
                 {copyLabel}
               </button>
             </div>
-
-            {hasEstimate ? (
-              <div className="history-save-note">
-                <HistoryIcon size={13} strokeWidth={1.8} aria-hidden="true" />
-                <span>
-                  {historyStatus === "unavailable"
-                    ? "Could not save locally. Download a PDF to keep this estimate."
-                    : historyStatus === "duplicate"
-                      ? "This estimate is already in history."
-                      : "Saved in this browser only."}
-                </span>
-                <Link href="/history">Open history</Link>
-              </div>
-            ) : null}
           </div>
 
           {hasEstimate ? (
             <div className="print-only print-parameters">
               <div>
                 <span>Tariff category</span>
-                <strong>{estimate.category}</strong>
+                <strong>
+                  {estimate.category} ·{" "}
+                  {getSubtypeLabel(estimate.category, estimate.subtype)}
+                </strong>
               </div>
               <div>
                 <span>Billing period</span>
@@ -876,14 +887,6 @@ export function TariffCalculator() {
             </div>
           ) : null}
         </section>
-
-        <p className="estimate-disclaimer">
-          <ShieldCheck size={13} strokeWidth={1.8} aria-hidden="true" />
-          <span>
-            Estimate only. Confirm the applicable tariff order and SOP before
-            official billing.
-          </span>
-        </p>
       </aside>
 
       <section className="card breakup-card">
@@ -892,25 +895,99 @@ export function TariffCalculator() {
             <span className="card-index">02</span>
             <div>
               <h2>Energy charge breakup</h2>
-              <p className="card-sub">
-                How consumption is distributed across tariff slabs.
-              </p>
             </div>
           </div>
           {hasEstimate ? (
             <span className="card-tag">
-              {estimate.category} · {estimate.unit}
+              {estimate.category} · {estimate.unit} ·{" "}
+              {estimate.segments.length}{" "}
+              {estimate.segments.length === 1 ? "period" : "periods"}
             </span>
           ) : null}
         </div>
 
         {hasEstimate ? (
           <>
+            <div className="period-cards">
+              {estimate.segments.map((segment) => (
+                <article className="period-card" key={`${segment.period}-${segment.from}`}>
+                  <div className="period-card-head">
+                    <h3>{segment.label}</h3>
+                    <span>
+                      {formatDate(segment.from)} – {formatDate(segment.to)}
+                    </span>
+                  </div>
+                  <p className="period-card-meta">
+                    {segment.days} billing days ·{" "}
+                    {formatQuantity(segment.units)} {estimate.unit} allocated
+                  </p>
+                  <div className="table-wrap">
+                    <table className="data-table period-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Slab</th>
+                          <th scope="col" className="num">
+                            Units
+                          </th>
+                          <th scope="col" className="num">
+                            Rate
+                          </th>
+                          <th scope="col" className="num">
+                            Energy
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {segment.rows.map((row, index) => (
+                          <tr key={`${row.label}-${index}`}>
+                            <td>{row.label}</td>
+                            <td className="num">{formatQuantity(row.units)}</td>
+                            <td className="num">{formatCurrency(row.rate)}</td>
+                            <td className="num amount">
+                              {formatCurrency(row.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td colSpan={3}>Energy subtotal</td>
+                          <td className="num">
+                            {formatCurrency(segment.energy)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <p className="period-card-basis">
+                    <strong>Fixed-charge basis:</strong> {segmentNote(segment)} ·{" "}
+                    {formatCurrency(segment.fixedRate)} /{" "}
+                    {segment.fixedBasis === "connection"
+                      ? "connection"
+                      : segment.fixedBasis}{" "}
+                    / month
+                  </p>
+                  <div className="period-card-totals">
+                    <span>
+                      Fixed charges <b>{formatCurrency(segment.fixed)}</b>
+                    </span>
+                    <span>
+                      ED ({formatCurrency(segment.edRate)} / {estimate.unit}){" "}
+                      <b>{formatCurrency(segment.ed)}</b>
+                    </span>
+                    <span>
+                      Energy + fixed <b>{formatCurrency(segment.energy + segment.fixed)}</b>
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+
             <div className="table-wrap">
               <table className="data-table slab-table">
                 <thead>
                   <tr>
-                    <th scope="col">Consumption slab</th>
+                    <th scope="col">Tariff period · consumption slab</th>
                     <th scope="col" className="num">
                       Units
                     </th>
@@ -942,15 +1019,6 @@ export function TariffCalculator() {
                 </tfoot>
               </table>
             </div>
-
-            <p className="table-note">
-              <Info size={13} strokeWidth={1.8} aria-hidden="true" />
-              <span>
-                {config.kind === "flat"
-                  ? `A single flat rate of ${formatCurrency(config.rates[0])} per ${estimate.unit} is applied to all ${formatQuantity(estimate.units)} ${estimate.unit}.`
-                  : `Slab thresholds are prorated over ${estimate.days} days using 30 days per month. The first slab limit is ${estimate.slabLimit} ${estimate.unit} (exact ${estimate.exactLimit.toFixed(4)}).`}
-              </span>
-            </p>
           </>
         ) : (
           <div className="empty-state">
@@ -958,28 +1026,8 @@ export function TariffCalculator() {
               <Calculator size={18} strokeWidth={1.8} aria-hidden="true" />
             </div>
             <p className="empty-title">No breakup available</p>
-            <p className="empty-text">
-              Calculate the bill to see how consumption is allocated across the
-              applicable energy slabs.
-            </p>
           </div>
         )}
-      </section>
-
-      <section className="method-callout">
-        <div>
-          <span className="method-callout-label">Method &amp; assumptions</span>
-          <h2>How this estimate is calculated</h2>
-          <p>
-            Slab proration, fixed charges, electricity duty, MC tax, FPPCA and
-            category-specific rules are documented on the guide page.
-          </p>
-        </div>
-        <Link className="btn btn-secondary btn-sm" href="/guide">
-          <BookOpen size={15} strokeWidth={1.8} aria-hidden="true" />
-          Read the guide
-          <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" />
-        </Link>
       </section>
     </div>
   );

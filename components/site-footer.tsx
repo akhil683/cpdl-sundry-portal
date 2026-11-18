@@ -10,10 +10,6 @@ export function SiteFooter() {
         </div>
         <p className="footer-meta">
           Chandigarh Power Distribution Limited
-          <span className="footer-separator" aria-hidden="true">
-            ·
-          </span>
-          Tariff year 2026–27
         </p>
       </div>
     </footer>

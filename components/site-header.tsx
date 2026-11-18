@@ -8,10 +8,12 @@ import {
   Calculator,
   History as HistoryIcon,
   Menu,
+  Scale,
   Table2,
   X,
 } from "lucide-react";
 import { BrandBolt } from "@/components/brand-bolt";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   {
@@ -23,6 +25,11 @@ const navigation = [
     href: "/already-charged",
     label: "Already charged",
     icon: Table2,
+  },
+  {
+    href: "/net-summary",
+    label: "Net summary",
+    icon: Scale,
   },
   {
     href: "/history",
@@ -72,8 +79,6 @@ export function SiteHeader() {
               Chandigarh Power Distribution Limited
             </span>
           </span>
-          <span className="brand-rule" aria-hidden="true" />
-          <span className="brand-product">Sundry billing portal</span>
         </Link>
 
         <div className="header-right">
@@ -105,10 +110,7 @@ export function SiteHeader() {
             })}
           </nav>
 
-          <div className="header-meta">
-            <span className="header-meta-label">Tariff schedule</span>
-            <span className="header-meta-value">2026–27</span>
-          </div>
+          <ThemeToggle />
 
           <button
             type="button"

@@ -1,18 +1,22 @@
 # CPDL Sundry Billing Portal
 
-A Next.js conversion of the CPDL sundry billing worksheet. The portal keeps the
-two working areas from the original file:
+A Next.js conversion of the CPDL sundry billing worksheet. The portal has four
+working areas:
 
-- **To be charged** — an estimate calculator with prorated billing days,
-  tariff-wise energy slabs, electricity duty, MC tax, fixed charges and FPPCA.
-- **Already charged** — a live charge entry sheet with row-level totals and a
-  consolidated summary.
+- **To be charged** — consumer credentials plus an estimate calculator with
+  prorated billing days, date-wise tariff periods, tariff-wise energy slabs,
+  automatic electricity duty, MC tax, 85% fixed-charge load and FPPCA.
+- **Already charged** — a live charge entry sheet with units, row-level totals
+  and a consolidated summary, saved in this browser.
+- **Net summary** — compares the latest estimate with the already-charged sheet
+  charge head by charge head and prints a net statement.
 - **History** — automatically saved estimates from this browser, with
   expandable calculations, PDF printing and individual or bulk removal.
 
-Every successful estimate is written to `localStorage`. History is intentionally
-device-local and is not sent to a server. The History page warns users to print
-or save a PDF copy before clearing browser data.
+Estimates, the charged ledger and consumer credentials are written to
+`localStorage`. They are intentionally device-local and are not sent to a server.
+The History page warns users to print or save a PDF copy before clearing browser
+data.
 
 ## Run locally
 
@@ -35,20 +39,26 @@ npm start
 
 ```text
 app/
-  to-be-charged/     Sundry estimate page
+  to-be-charged/     Consumer credentials and sundry estimate
   already-charged/   Charge entry sheet
+  net-summary/       To-be vs already-charged net statement
   history/           Locally stored calculation history
   layout.tsx         Shared shell, metadata and fonts
   globals.css        Design system and responsive/print styles
 components/
+  consumer-details.tsx
   tariff-calculator.tsx
   charged-ledger.tsx
+  net-summary.tsx
   calculation-history.tsx
   site-header.tsx
   site-footer.tsx
   page-header.tsx
 lib/
-  tariff.ts          Tariff schedule, billing rules and calculations
+  tariff.ts          Tariff periods, schedule, billing rules and calculations
+  ledger.ts          Charged-entry storage, totals and validation
+  consumer.ts        Consumer credential storage
+  net.ts             Net summary calculation
   history.ts         Local storage records and validation
   format.ts          INR and number formatting helpers
 ```
