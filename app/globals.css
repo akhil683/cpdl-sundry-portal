@@ -30,14 +30,14 @@
   --accent-ink: #ffffff;
   --focus: var(--accent);
 
-  /* Instrument panels ------------------------------------------------------ */
-  --panel: #18211b;
-  --panel-2: #0f1512;
-  --panel-ink: #f3f6f2;
-  --panel-muted: #a3b0a6;
-  --panel-accent: #f26870;
-  --panel-line: rgba(255, 255, 255, 0.14);
-  --panel-glow: rgba(176, 16, 32, 0.24);
+  /* Instrument panels (red) ----------------------------------------------- */
+  --panel: #b01020;
+  --panel-2: #8e0d17;
+  --panel-ink: #ffffff;
+  --panel-muted: #f6d9dc;
+  --panel-accent: #ffffff;
+  --panel-line: rgba(255, 255, 255, 0.24);
+  --panel-glow: rgba(255, 255, 255, 0.16);
 
   /* Solid neutral (destructive confirmation) ------------------------------- */
   --solid-bg: #1c2620;
@@ -52,7 +52,14 @@
   --warn-bg: #fbf4e6;
   --warn-line: #ecdabe;
 
-  --header-bg: #ffffff;
+  /* Header (red bar) ------------------------------------------------------- */
+  --header-bg: var(--accent);
+  --header-ink: #ffffff;
+  --header-ink-muted: rgba(255, 255, 255, 0.78);
+  --header-ink-soft: rgba(255, 255, 255, 0.64);
+  --header-line: rgba(255, 255, 255, 0.22);
+  --header-hover: rgba(255, 255, 255, 0.14);
+  --header-active: rgba(255, 255, 255, 0.18);
 
   --radius-card: 6px;
   --radius-control: 4px;
@@ -92,13 +99,13 @@
   --accent-ink: #ffffff;
   --focus: #f08086;
 
-  --panel: #1c2620;
-  --panel-2: #111713;
-  --panel-ink: #f3f6f2;
-  --panel-muted: #a3b0a6;
-  --panel-accent: #f26870;
-  --panel-line: rgba(255, 255, 255, 0.12);
-  --panel-glow: rgba(194, 24, 41, 0.2);
+  --panel: #c21829;
+  --panel-2: #a31422;
+  --panel-ink: #ffffff;
+  --panel-muted: #f8d9dd;
+  --panel-accent: #ffffff;
+  --panel-line: rgba(255, 255, 255, 0.22);
+  --panel-glow: rgba(255, 255, 255, 0.14);
 
   --solid-bg: #e7ece6;
   --solid-hover: #f3f6f2;
@@ -111,7 +118,13 @@
   --warn-bg: #261c10;
   --warn-line: #46321b;
 
-  --header-bg: #0e1310;
+  --header-bg: var(--accent);
+  --header-ink: #ffffff;
+  --header-ink-muted: rgba(255, 255, 255, 0.78);
+  --header-ink-soft: rgba(255, 255, 255, 0.64);
+  --header-line: rgba(255, 255, 255, 0.22);
+  --header-hover: rgba(255, 255, 255, 0.14);
+  --header-active: rgba(255, 255, 255, 0.18);
 
   --shadow-card:
     0 1px 0 rgba(255, 255, 255, 0.02),
@@ -267,8 +280,8 @@ svg {
   z-index: 60;
   isolation: isolate;
   background: var(--header-bg);
-  color: var(--ink-900);
-  border-bottom: 1px solid var(--line);
+  color: var(--header-ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--header-bg) 62%, #000);
 }
 
 .site-header::before {
@@ -276,8 +289,12 @@ svg {
   position: absolute;
   inset: 0 0 auto 0;
   height: 3px;
-  background: var(--accent);
+  background: color-mix(in srgb, var(--header-bg) 68%, #000);
   pointer-events: none;
+}
+
+.site-header :focus-visible {
+  outline-color: #ffffff;
 }
 
 .header-inner {
@@ -304,8 +321,8 @@ svg {
   height: 38px;
   flex: 0 0 38px;
   border-radius: 4px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: #ffffff;
+  color: var(--header-bg);
   box-shadow: 0 1px 2px rgba(20, 26, 22, 0.18);
 }
 
@@ -321,7 +338,7 @@ svg {
 }
 
 .brand-name {
-  color: var(--ink-900);
+  color: var(--header-ink);
   font-family: var(--font-sans), "Segoe UI", Arial, sans-serif;
   font-size: 19px;
   font-weight: 700;
@@ -332,7 +349,7 @@ svg {
 
 .brand-sub {
   margin-top: 3px;
-  color: var(--ink-500);
+  color: var(--header-ink-muted);
   font-size: 9.5px;
   font-weight: 500;
   line-height: 1.4;
@@ -406,7 +423,7 @@ svg {
   gap: 7px;
   padding: 9px 10px;
   border-radius: 4px;
-  color: var(--ink-500);
+  color: var(--header-ink-muted);
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
@@ -416,12 +433,12 @@ svg {
 }
 
 .main-nav-link:hover {
-  color: var(--ink-900);
-  background: var(--wash);
+  color: var(--header-ink);
+  background: var(--header-hover);
 }
 
 .main-nav-link[aria-current="page"] {
-  color: var(--ink-900);
+  color: var(--header-ink);
   background: transparent;
 }
 
@@ -433,20 +450,20 @@ svg {
   bottom: -19px;
   height: 2px;
   border-radius: 1px;
-  background: var(--accent);
+  background: #ffffff;
 }
 
 .main-nav-icon {
-  color: var(--ink-400);
+  color: var(--header-ink-soft);
   transition: color 0.15s ease;
 }
 
 .main-nav-link:hover .main-nav-icon {
-  color: var(--ink-700);
+  color: var(--header-ink);
 }
 
 .main-nav-link[aria-current="page"] .main-nav-icon {
-  color: var(--accent);
+  color: #ffffff;
 }
 
 .nav-toggle {
@@ -456,10 +473,10 @@ svg {
   width: 38px;
   height: 38px;
   flex: 0 0 38px;
-  border: 1px solid var(--control-line);
+  border: 1px solid var(--header-line);
   border-radius: 4px;
-  background: var(--paper);
-  color: var(--ink-800);
+  background: var(--header-hover);
+  color: var(--header-ink);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -468,13 +485,13 @@ svg {
 }
 
 .nav-toggle:hover {
-  border-color: var(--ink-400);
-  background: var(--wash);
-  color: var(--ink-900);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 .nav-toggle:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
@@ -489,22 +506,22 @@ svg {
   height: 32px;
   flex: 0 0 auto;
   padding: 0 7px;
-  border: 1px solid var(--control-line);
+  border: 1px solid var(--header-line);
   border-radius: 999px;
-  background: var(--paper-2);
-  color: var(--ink-400);
+  background: var(--header-hover);
+  color: var(--header-ink-muted);
   transition:
     border-color 0.15s ease,
     background-color 0.15s ease;
 }
 
 .theme-toggle:hover {
-  border-color: var(--accent-line);
-  background: var(--accent-tint);
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .theme-toggle:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
@@ -513,7 +530,7 @@ svg {
   z-index: 1;
   width: 15px;
   height: 15px;
-  color: var(--ink-400);
+  color: var(--header-ink-muted);
   transition: color 0.15s ease;
 }
 
@@ -523,26 +540,24 @@ svg {
   left: 3px;
   width: 24px;
   height: 24px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   border-radius: 50%;
-  background: var(--paper);
-  box-shadow: 0 1px 2px rgba(20, 26, 22, 0.14);
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 26, 22, 0.28);
   transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 html[data-theme="dark"] .theme-toggle-thumb {
-  border-color: var(--accent-line);
-  background: var(--accent-tint);
   transform: translateX(30px);
 }
 
 html[data-theme="light"] .theme-toggle .icon-sun,
 html:not([data-theme]) .theme-toggle .icon-sun {
-  color: var(--accent);
+  color: var(--header-bg);
 }
 
 html[data-theme="dark"] .theme-toggle .icon-moon {
-  color: var(--accent-text);
+  color: var(--header-bg);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1495,7 +1510,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.02em;
@@ -1507,7 +1522,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 10px 20px;
   border-bottom: 1px solid var(--line-soft);
   color: var(--ink-700);
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -1534,12 +1549,12 @@ input[type="number"]::-webkit-inner-spin-button {
   border-bottom: 0;
   background: var(--accent-tint);
   color: var(--ink-900);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 .data-table tfoot .num {
-  font-size: 13px;
+  font-size: 14px;
   text-align: right;
 }
 
@@ -1731,7 +1746,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.01em;
@@ -1784,7 +1799,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash) !important;
   color: var(--ink-400);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: 500;
 }
 
@@ -1804,7 +1819,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 5px;
   background: transparent;
   color: var(--ink-900);
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1;
   transition:
     background 0.12s ease,
@@ -1837,7 +1852,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 0 4px;
   color: var(--ink-900);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: 10.5px;
   letter-spacing: -0.015em;
 }
 
@@ -1852,7 +1867,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding-right: 9px !important;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: 11px;
   text-align: right;
   white-space: nowrap;
 }
@@ -1864,7 +1879,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .row-total {
   padding-right: 9px !important;
   color: var(--ink-900);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   text-align: right;
   white-space: nowrap;
@@ -2718,9 +2733,9 @@ input[type="number"]::-webkit-inner-spin-button {
     align-items: stretch;
     gap: 2px;
     padding: 9px 32px 16px;
-    border-top: 1px solid var(--line);
-    background: var(--paper);
-    box-shadow: var(--shadow-pop);
+    border-top: 1px solid var(--header-line);
+    background: var(--header-bg);
+    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.55);
   }
 
   .main-nav.is-open {
@@ -2733,9 +2748,14 @@ input[type="number"]::-webkit-inner-spin-button {
     font-size: 13.5px;
   }
 
+  .main-nav-link:hover {
+    color: var(--header-ink);
+    background: var(--header-hover);
+  }
+
   .main-nav-link[aria-current="page"] {
-    background: var(--accent-tint);
-    color: var(--accent-text);
+    background: var(--header-active);
+    color: var(--header-ink);
   }
 
   .main-nav-link[aria-current="page"]::after {
@@ -2743,7 +2763,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .main-nav-link[aria-current="page"] .main-nav-icon {
-    color: var(--accent-text);
+    color: #ffffff;
   }
 
   .main-nav-icon {
@@ -3995,7 +4015,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-section h3 {
   color: var(--ink-800);
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
 }
 
@@ -4010,7 +4030,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-section-head span {
   color: var(--ink-500);
-  font-size: 9.5px;
+  font-size: 10.5px;
 }
 
 .net-credentials {
@@ -4026,9 +4046,10 @@ input[type="number"]::-webkit-inner-spin-button {
   border-bottom: 1px solid var(--line-soft);
   background: transparent;
   color: var(--ink-500);
-  font-size: 8.5px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: normal;
   white-space: normal;
 }
 
@@ -4037,13 +4058,13 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 9px 12px;
   border-bottom: 1px solid var(--line-soft);
   color: var(--ink-800);
-  font-size: 11px;
+  font-size: 12px;
   white-space: normal;
 }
 
 .net-credit {
   color: var(--ink-900);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -4057,7 +4078,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-compare th,
 .net-compare td {
   padding: 8px 12px;
-  font-size: 10.5px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -4068,14 +4089,14 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-compare tfoot td {
   background: var(--accent-tint);
-  font-size: 11px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
 .net-compare tfoot tr.grand td {
   background: var(--panel);
   color: var(--panel-ink);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .net-params {
@@ -4092,14 +4113,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-params dt {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 8.5px;
+  font-size: 9.5px;
   letter-spacing: 0.01em;
 }
 
 .net-params dd {
   margin-top: 2px;
   color: var(--ink-800);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -4126,20 +4147,20 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-period-head strong {
   color: var(--ink-800);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 
 .net-period-head span {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .net-period p {
   margin-top: 3px;
   color: var(--ink-500);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .net-period-totals {
@@ -4151,7 +4172,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-period-totals span {
   color: var(--ink-600);
-  font-size: 8.5px;
+  font-size: 10px;
 }
 
 .net-period-totals b {
@@ -4170,7 +4191,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-ledger th,
 .net-ledger td {
   padding: 7px 9px;
-  font-size: 9.5px;
+  font-size: 11px;
 }
 
 .net-empty {
@@ -4195,7 +4216,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-700);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -4331,13 +4352,13 @@ input[type="number"]::-webkit-inner-spin-button {
     --accent-line: #f0cfd3;
     --accent-ink: #ffffff;
     --focus: #b01020;
-    --panel: #18211b;
-    --panel-2: #0f1512;
+    --panel: #b01020;
+    --panel-2: #8e0d17;
     --panel-ink: #ffffff;
-    --panel-muted: #a3b0a6;
-    --panel-accent: #f26870;
-    --panel-line: rgba(255, 255, 255, 0.14);
-    --panel-glow: rgba(176, 16, 32, 0.24);
+    --panel-muted: #f6d9dc;
+    --panel-accent: #ffffff;
+    --panel-line: rgba(255, 255, 255, 0.24);
+    --panel-glow: rgba(255, 255, 255, 0.16);
     --solid-bg: #1c2620;
     --solid-hover: #2a352e;
     --solid-ink: #ffffff;
@@ -4562,19 +4583,19 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .data-table th {
     padding: 5px 10px;
-    font-size: 8.5px;
+    font-size: 9.5px;
   }
 
   .data-table td {
     padding: 5px 10px;
-    font-size: 9.5px;
+    font-size: 10.5px;
   }
 
   .data-table tfoot td {
     background: var(--accent-tint) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    font-size: 9.5px;
+    font-size: 10.5px;
   }
 
   .table-note {
@@ -4633,14 +4654,14 @@ input[type="number"]::-webkit-inner-spin-button {
     background: var(--wash) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .ledger-table tbody th,
   .ledger-table tbody td {
     padding: 2px 2px;
     background: var(--paper) !important;
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .ledger-table tbody tr {
@@ -4654,11 +4675,11 @@ input[type="number"]::-webkit-inner-spin-button {
     outline: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .ledger-date {
-    font-size: 7.5px;
+    font-size: 8.5px;
   }
 
   .ledger-date::-webkit-calendar-picker-indicator {
@@ -4667,12 +4688,12 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .ledger-days {
     padding-right: 3px !important;
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .row-total {
     padding-right: 3px !important;
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .summary-card {
@@ -4995,7 +5016,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .period-table th,
   .period-table td {
     padding: 3px 5px;
-    font-size: 7.5px;
+    font-size: 8.5px;
   }
 
   .period-card-totals span {
@@ -5040,11 +5061,11 @@ input[type="number"]::-webkit-inner-spin-button {
   .net-brand,
   .net-sub,
   .net-generated span {
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .net-generated strong {
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .net-body {
@@ -5057,7 +5078,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .net-section h3 {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .net-section-head span {
@@ -5066,16 +5087,16 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .net-credentials th {
     padding: 4px 6px;
-    font-size: 6.5px;
+    font-size: 9px;
   }
 
   .net-credentials td {
     padding: 5px 6px;
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .net-credit {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .net-compare th,
@@ -5083,7 +5104,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .net-ledger th,
   .net-ledger td {
     padding: 4px 6px;
-    font-size: 7.5px;
+    font-size: 9px;
   }
 
   .net-compare thead th {
@@ -5104,26 +5125,26 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .net-params dt {
-    font-size: 6.5px;
+    font-size: 7.5px;
   }
 
   .net-params dd,
   .net-period p,
   .net-period-totals span,
   .net-empty {
-    font-size: 7.5px;
+    font-size: 8.5px;
   }
 
   .net-period-head strong {
-    font-size: 8px;
+    font-size: 9px;
   }
 
   .net-period-head span {
-    font-size: 6.5px;
+    font-size: 7.5px;
   }
 
   .net-formula {
     padding: 8px 10px;
-    font-size: 9px;
+    font-size: 10.5px;
   }
 }

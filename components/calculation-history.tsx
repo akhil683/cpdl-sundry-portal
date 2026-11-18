@@ -18,7 +18,14 @@ import {
   writeHistory,
   type HistoryEntry,
 } from "@/lib/history";
-import { TARIFFS, getLoadLabel, getLoadUnit, getSubtypeLabel } from "@/lib/tariff";
+import { TARIFFS, getLoadLabel, getLoadUnit } from "@/lib/tariff";
+import {
+  EMPTY_CONSUMER,
+  readConsumer,
+  type ConsumerDetails,
+} from "@/lib/consumer";
+import { readLedger, type LedgerEntry } from "@/lib/ledger";
+import { NetSummaryDocument } from "@/components/net-summary-document";
 import {
   formatCurrency,
   formatDate,
@@ -32,6 +39,8 @@ type PendingRemoval = { kind: "one"; id: string } | { kind: "all" } | null;
 interface HistoryCardProps {
   entry: HistoryEntry;
   isPrinting: boolean;
+  consumer: ConsumerDetails;
+  ledger: LedgerEntry[];
   onPrint: (id: string) => void;
   onRemove: (id: string) => void;
 }
@@ -39,6 +48,8 @@ interface HistoryCardProps {
 function HistoryCard({
   entry,
   isPrinting,
+  consumer,
+  ledger,
   onPrint,
   onRemove,
 }: HistoryCardProps) {
@@ -256,143 +267,34 @@ function HistoryCard({
         </details>
       </div>
 
-      <HistoryPrintDocument entry={entry} />
+      {isPrinting ? (
+        <HistoryPrintDocument
+          entry={entry}
+          consumer={consumer}
+          ledger={ledger}
+        />
+      ) : null}
     </article>
   );
 }
 
-function HistoryPrintDocument({ entry }: { entry: HistoryEntry }) {
-  const config = TARIFFS[entry.category];
-  const loadLabel = getLoadLabel(config);
-  const loadUnit = getLoadUnit(config);
-
+function HistoryPrintDocument({
+  entry,
+  consumer,
+  ledger,
+}: {
+  entry: HistoryEntry;
+  consumer: ConsumerDetails;
+  ledger: LedgerEntry[];
+}) {
   return (
     <div className="history-print-doc print-only">
-      <header className="history-print-head">
-        <div>
-          <p className="history-print-brand">CPDL · Sundry billing portal</p>
-          <h1 className="history-print-title">Sundry calculation record</h1>
-          <p className="history-print-sub">
-            Saved {formatTimestamp(entry.createdAt)}
-          </p>
-        </div>
-        <div className="history-print-total">
-          <span>Estimated total</span>
-          <strong>{formatCurrency(entry.total)}</strong>
-        </div>
-      </header>
-
-      <dl className="history-print-meta">
-        <div>
-          <dt>Tariff category</dt>
-          <dd>
-            {entry.category} · {config.group}
-            {entry.subtype && entry.subtype !== "default"
-              ? ` · ${getSubtypeLabel(entry.category, entry.subtype)}`
-              : ""}
-          </dd>
-        </div>
-        <div>
-          <dt>Billing period</dt>
-          <dd>
-            {formatDate(entry.from)} – {formatDate(entry.to)}
-          </dd>
-        </div>
-        <div>
-          <dt>Billing days</dt>
-          <dd>{entry.days}</dd>
-        </div>
-        <div>
-          <dt>Consumption</dt>
-          <dd>
-            {formatQuantity(entry.units)} {entry.unit}
-          </dd>
-        </div>
-        <div>
-          <dt>{loadLabel}</dt>
-          <dd>
-            {formatQuantity(entry.load)} {loadUnit}
-          </dd>
-        </div>
-        <div>
-          <dt>Charge months</dt>
-          <dd>{formatMonths(entry.months)}</dd>
-        </div>
-      </dl>
-
-      <div className="history-print-columns">
-        <section>
-          <h2>Energy charge breakup</h2>
-          <table className="data-table history-print-table">
-            <thead>
-              <tr>
-                <th scope="col">Consumption slab</th>
-                <th scope="col" className="num">
-                  Units
-                </th>
-                <th scope="col" className="num">
-                  Rate
-                </th>
-                <th scope="col" className="num">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {entry.rows.map((row, index) => (
-                <tr key={`${row.label}-${index}`}>
-                  <td>{row.label}</td>
-                  <td className="num">{formatQuantity(row.units)}</td>
-                  <td className="num">{formatCurrency(row.rate)}</td>
-                  <td className="num">{formatCurrency(row.amount)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colSpan={3}>Total energy charges</td>
-                <td className="num">{formatCurrency(entry.energy)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </section>
-
-        <section>
-          <h2>Charge summary</h2>
-          <dl className="history-print-charges">
-            <div>
-              <dt>Energy charges</dt>
-              <dd>{formatCurrency(entry.energy)}</dd>
-            </div>
-            <div>
-              <dt>Electricity duty</dt>
-              <dd>{formatCurrency(entry.ed)}</dd>
-            </div>
-            <div>
-              <dt>MC tax</dt>
-              <dd>{formatCurrency(entry.mc)}</dd>
-            </div>
-            <div>
-              <dt>Fixed charges</dt>
-              <dd>{formatCurrency(entry.fixed)}</dd>
-            </div>
-            <div>
-              <dt>FPPCA</dt>
-              <dd>{formatCurrency(entry.fppca)}</dd>
-            </div>
-            <div className="is-total">
-              <dt>Estimated total</dt>
-              <dd>{formatCurrency(entry.total)}</dd>
-            </div>
-          </dl>
-        </section>
-      </div>
-
-      <p className="history-print-note">
-        Generated from this browser&apos;s local calculation history. This is
-        not a permanent CPDL record. Verify the applicable tariff order and SOP
-        before official billing.
-      </p>
+      <NetSummaryDocument
+        latest={entry}
+        ledger={ledger}
+        consumer={consumer}
+        generatedOn={formatTimestamp(entry.createdAt)}
+      />
     </div>
   );
 }
@@ -400,6 +302,8 @@ function HistoryPrintDocument({ entry }: { entry: HistoryEntry }) {
 export function CalculationHistory() {
   const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
   const [printingId, setPrintingId] = useState<string | null>(null);
+  const [consumer, setConsumer] = useState<ConsumerDetails>(EMPTY_CONSUMER);
+  const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [pendingRemoval, setPendingRemoval] =
     useState<PendingRemoval>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
@@ -410,6 +314,8 @@ export function CalculationHistory() {
     const loaded = readHistory();
     setEntries(loaded);
     setPrintingId(loaded[0]?.id ?? null);
+    setConsumer(readConsumer());
+    setLedger(readLedger());
 
     function handleStorage(event: StorageEvent) {
       if (event.key !== null && event.key !== HISTORY_STORAGE_KEY) return;
@@ -444,6 +350,8 @@ export function CalculationHistory() {
   }, [pendingRemoval]);
 
   function handlePrint(id: string) {
+    setConsumer(readConsumer());
+    setLedger(readLedger());
     setPrintingId(id);
 
     if (printTimer.current) clearTimeout(printTimer.current);
@@ -547,6 +455,8 @@ export function CalculationHistory() {
               key={entry.id}
               entry={entry}
               isPrinting={printingId === entry.id}
+              consumer={consumer}
+              ledger={ledger}
               onPrint={handlePrint}
               onRemove={(id) => setPendingRemoval({ kind: "one", id })}
             />
