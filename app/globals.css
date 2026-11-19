@@ -1,6 +1,11 @@
 :root {
   color-scheme: light;
 
+  /* Type scale ------------------------------------------------------------- */
+  /* Every screen font size is multiplied by this. Bump it to resize the whole
+     site's typography; print styles reset it to 1 so A4 layouts stay intact. */
+  --font-scale: 1.07;
+
   /* Paper and ink ---------------------------------------------------------- */
   --canvas: #edf0ea;
   --paper: #ffffff;
@@ -151,7 +156,7 @@ body {
   background: var(--canvas);
   color: var(--ink-900);
   font-family: var(--font-sans), "Segoe UI", Arial, sans-serif;
-  font-size: 14px;
+  font-size: calc(14px * var(--font-scale));
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -253,7 +258,7 @@ svg {
   border-radius: 4px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 600;
   transition: top 0.15s ease;
 }
@@ -331,7 +336,7 @@ svg {
 .brand-name {
   color: var(--header-ink);
   font-family: var(--font-sans), "Segoe UI", Arial, sans-serif;
-  font-size: 19px;
+  font-size: calc(19px * var(--font-scale));
   font-weight: 700;
   font-stretch: 88%;
   line-height: 1.05;
@@ -341,7 +346,7 @@ svg {
 .brand-sub {
   margin-top: 3px;
   color: var(--header-ink-muted);
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.015em;
@@ -358,7 +363,7 @@ svg {
 .brand-product {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
@@ -374,7 +379,7 @@ svg {
 
 .header-meta-label {
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.01em;
   color: var(--ink-400);
   white-space: nowrap;
@@ -387,7 +392,7 @@ svg {
   background: var(--paper-2);
   color: var(--ink-800);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -415,7 +420,7 @@ svg {
   padding: 9px 10px;
   border-radius: 4px;
   color: var(--header-ink-muted);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 500;
   white-space: nowrap;
   transition:
@@ -581,7 +586,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   margin-bottom: 13px;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -597,7 +602,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .page-title {
   color: var(--ink-900);
   font-family: var(--font-sans), "Segoe UI", Arial, sans-serif;
-  font-size: clamp(32px, 3.4vw, 44px);
+  font-size: calc(clamp(32px, 3.4vw, 44px) * var(--font-scale));
   font-weight: 650;
   font-stretch: 92%;
   line-height: 1.04;
@@ -608,7 +613,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   max-width: 62ch;
   margin-top: 12px;
   color: var(--ink-500);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--font-scale));
   line-height: 1.65;
 }
 
@@ -634,7 +639,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .page-fact dt {
   color: var(--ink-400);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -642,7 +647,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .page-fact dd {
   margin-top: 3px;
   color: var(--ink-800);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -719,13 +724,13 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   background: var(--accent-tint);
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   font-weight: 600;
 }
 
 .card-head h2 {
   color: var(--ink-900);
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   font-weight: 650;
   line-height: 1.3;
   letter-spacing: -0.012em;
@@ -734,7 +739,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .card-sub {
   margin-top: 2px;
   color: var(--ink-500);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   line-height: 1.45;
 }
 
@@ -748,7 +753,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   background: var(--paper-2);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1;
   white-space: nowrap;
 }
@@ -777,7 +782,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .form-section-title {
   padding: 0;
   color: var(--ink-800);
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
   font-weight: 650;
   letter-spacing: -0.01em;
 }
@@ -786,7 +791,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   margin-top: 4px;
   margin-bottom: 15px;
   color: var(--ink-500);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -806,7 +811,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .field-label {
   display: block;
   color: var(--ink-700);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.005em;
@@ -821,7 +826,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   border-radius: var(--radius-control);
   background: var(--paper);
   color: var(--ink-900);
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
   font-variant-numeric: tabular-nums;
   transition:
     border-color 0.15s ease,
@@ -897,7 +902,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .readout strong {
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   font-weight: 600;
   line-height: 42px;
   font-variant-numeric: tabular-nums;
@@ -906,7 +911,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .readout-unit {
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.03em;
   opacity: 0.9;
 }
@@ -922,7 +927,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 5px;
   margin-top: 7px;
   color: var(--danger);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -964,7 +969,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--accent-tint);
   color: var(--ink-700);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -993,7 +998,7 @@ input[type="number"]::-webkit-inner-spin-button {
   align-items: center;
   justify-content: center;
   color: var(--ink-500);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   line-height: 1;
   pointer-events: none;
   transform: translateY(-50%);
@@ -1007,7 +1012,7 @@ input[type="number"]::-webkit-inner-spin-button {
   right: 12px;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.02em;
 }
 
@@ -1020,7 +1025,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .affix-rate {
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
 }
 
 .form-actions {
@@ -1045,7 +1050,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 0 15px;
   border: 1px solid transparent;
   border-radius: 4px;
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -1114,14 +1119,14 @@ input[type="number"]::-webkit-inner-spin-button {
   height: 33px;
   gap: 6px;
   padding: 0 10px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
 }
 
 .btn-print {
   height: 42px;
   gap: 8px;
   padding: 0 16px;
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
 }
 
 .btn-icon {
@@ -1196,7 +1201,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 7px;
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   letter-spacing: 0.04em;
 }
 
@@ -1214,7 +1219,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: rgba(255, 255, 255, 0.05);
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1;
   letter-spacing: 0.03em;
 }
@@ -1225,7 +1230,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-top: 13px;
   color: var(--panel-ink);
   font-family: var(--font-sans), "Segoe UI", Arial, sans-serif;
-  font-size: clamp(32px, 3.4vw, 40px);
+  font-size: calc(clamp(32px, 3.4vw, 40px) * var(--font-scale));
   font-weight: 650;
   font-stretch: 90%;
   line-height: 1.08;
@@ -1246,7 +1251,7 @@ input[type="number"]::-webkit-inner-spin-button {
   min-height: 34px;
   margin-top: 8px;
   color: var(--panel-muted);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1280,7 +1285,7 @@ input[type="number"]::-webkit-inner-spin-button {
   overflow: hidden;
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   letter-spacing: 0.015em;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1291,7 +1296,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-top: 4px;
   overflow: hidden;
   color: var(--panel-ink);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1328,7 +1333,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .line-item-label {
   display: block;
   color: var(--ink-700);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.4;
 }
@@ -1337,14 +1342,14 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   margin-top: 2px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.45;
 }
 
 .line-item-value {
   flex: 0 0 auto;
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
@@ -1366,7 +1371,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--wash);
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1409,7 +1414,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--accent-tint);
   color: var(--ink-700);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1441,7 +1446,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 6px;
   margin-top: 10px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -1468,7 +1473,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-top: 0;
   padding: 0 4px;
   color: var(--ink-400);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1498,7 +1503,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.02em;
@@ -1510,7 +1515,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 10px 20px;
   border-bottom: 1px solid var(--line-soft);
   color: var(--ink-700);
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
   white-space: nowrap;
 }
 
@@ -1537,12 +1542,12 @@ input[type="number"]::-webkit-inner-spin-button {
   border-bottom: 0;
   background: var(--accent-tint);
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
 }
 
 .data-table tfoot .num {
-  font-size: 14px;
+  font-size: calc(14px * var(--font-scale));
   text-align: right;
 }
 
@@ -1554,7 +1559,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-top: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1588,7 +1593,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .empty-title {
   color: var(--ink-800);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
 }
 
@@ -1596,7 +1601,7 @@ input[type="number"]::-webkit-inner-spin-button {
   max-width: 330px;
   margin-top: 4px;
   color: var(--ink-500);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -1621,7 +1626,7 @@ input[type="number"]::-webkit-inner-spin-button {
   position: relative;
   padding-left: 14px;
   color: var(--ink-500);
-  font-size: 10.75px;
+  font-size: calc(10.75px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -1649,7 +1654,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding-top: 13px;
   border-top: 1px solid var(--line);
   color: var(--ink-400);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1678,7 +1683,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--paper-2);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -1734,7 +1739,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.01em;
@@ -1787,7 +1792,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash) !important;
   color: var(--ink-400);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
 }
 
@@ -1807,7 +1812,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 5px;
   background: transparent;
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   line-height: 1;
   transition:
     background 0.12s ease,
@@ -1840,7 +1845,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 0 4px;
   color: var(--ink-900);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   letter-spacing: -0.015em;
 }
 
@@ -1855,7 +1860,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding-right: 9px !important;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   text-align: right;
   white-space: nowrap;
 }
@@ -1867,7 +1872,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .row-total {
   padding-right: 9px !important;
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
   text-align: right;
   white-space: nowrap;
@@ -1909,7 +1914,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-top: 1px solid var(--line-soft);
   background: var(--paper-2);
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
 }
 
 .sheet-note {
@@ -1920,7 +1925,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-top: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -1942,7 +1947,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .sheet-footer-meta {
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -1986,7 +1991,7 @@ input[type="number"]::-webkit-inner-spin-button {
   overflow: hidden;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1.4;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -1997,7 +2002,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   margin-top: 6px;
   color: var(--ink-900);
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   font-weight: 650;
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -2041,7 +2046,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1.4;
   letter-spacing: 0.03em;
 }
@@ -2049,7 +2054,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .grand-amount {
   margin-top: 7px;
   color: var(--panel-ink);
-  font-size: clamp(24px, 2.3vw, 29px);
+  font-size: calc(clamp(24px, 2.3vw, 29px) * var(--font-scale));
   font-weight: 650;
   font-stretch: 90%;
   line-height: 1.15;
@@ -2066,7 +2071,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .grand-note {
   color: var(--panel-muted);
-  font-size: 9.75px;
+  font-size: calc(9.75px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -2119,14 +2124,14 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-bottom: 5px;
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1.4;
   letter-spacing: 0.02em;
 }
 
 .history-warning h2 {
   color: var(--ink-900);
-  font-size: 14.5px;
+  font-size: calc(14.5px * var(--font-scale));
   font-weight: 600;
   line-height: 1.4;
   letter-spacing: -0.008em;
@@ -2136,7 +2141,7 @@ input[type="number"]::-webkit-inner-spin-button {
   max-width: 900px;
   margin-top: 4px;
   color: var(--ink-600);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -2166,7 +2171,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .history-section-head h2 {
   color: var(--ink-900);
-  font-size: 17px;
+  font-size: calc(17px * var(--font-scale));
   font-weight: 600;
   letter-spacing: -0.015em;
 }
@@ -2174,7 +2179,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-section-head p {
   margin-top: 3px;
   color: var(--ink-500);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -2224,7 +2229,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--accent-tint);
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1;
   letter-spacing: 0.01em;
 }
@@ -2232,14 +2237,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-kicker time {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1.4;
 }
 
 .history-total {
   margin-top: 10px;
   color: var(--ink-900);
-  font-size: 29px;
+  font-size: calc(29px * var(--font-scale));
   font-weight: 650;
   font-stretch: 90%;
   line-height: 1.1;
@@ -2251,7 +2256,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-period {
   margin-top: 5px;
   color: var(--ink-700);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.5;
 }
@@ -2263,7 +2268,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 5px;
   margin-top: 4px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -2293,7 +2298,7 @@ input[type="number"]::-webkit-inner-spin-button {
   overflow: hidden;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1.4;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -2303,7 +2308,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-breakdown dd {
   margin-top: 5px;
   color: var(--ink-900);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-weight: 600;
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
@@ -2332,7 +2337,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 12px;
   padding: 10px 20px;
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
   line-height: 1.5;
   list-style: none;
@@ -2374,7 +2379,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-params dt {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1.4;
   letter-spacing: 0.01em;
 }
@@ -2382,7 +2387,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-params dd {
   margin-top: 4px;
   color: var(--ink-800);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
 }
@@ -2395,17 +2400,17 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .history-slab-table th {
   padding: 8px 12px;
-  font-size: 8px;
+  font-size: calc(8px * var(--font-scale));
 }
 
 .history-slab-table td {
   padding: 7px 12px;
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
 }
 
 .history-slab-table tfoot td {
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
 }
 
 .history-slab-table .amount {
@@ -2423,7 +2428,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--danger-bg);
   color: var(--danger);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -2455,7 +2460,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .history-empty h2 {
   color: var(--ink-900);
-  font-size: 16px;
+  font-size: calc(16px * var(--font-scale));
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -2464,7 +2469,7 @@ input[type="number"]::-webkit-inner-spin-button {
   max-width: 420px;
   margin-top: 6px;
   color: var(--ink-500);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -2480,7 +2485,7 @@ input[type="number"]::-webkit-inner-spin-button {
   min-height: 160px;
   padding: 24px;
   color: var(--ink-500);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
 }
 
 .history-loading svg {
@@ -2524,7 +2529,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .dialog-title {
   color: var(--ink-900);
-  font-size: 16px;
+  font-size: calc(16px * var(--font-scale));
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -2532,7 +2537,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .dialog-text {
   margin-top: 6px;
   color: var(--ink-500);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -2584,7 +2589,7 @@ input[type="number"]::-webkit-inner-spin-button {
   align-items: center;
   gap: 7px;
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
 }
 
@@ -2596,7 +2601,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .footer-meta {
   color: var(--ink-400);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -2647,14 +2652,14 @@ input[type="number"]::-webkit-inner-spin-button {
   .estimate-amount {
     grid-area: amount;
     margin-top: 10px;
-    font-size: clamp(38px, 4.4vw, 46px);
+    font-size: calc(clamp(38px, 4.4vw, 46px) * var(--font-scale));
   }
 
   .estimate-caption {
     grid-area: caption;
     min-height: 0;
     margin-top: 6px;
-    font-size: 11.5px;
+    font-size: calc(11.5px * var(--font-scale));
   }
 
   .estimate-meta {
@@ -2733,7 +2738,7 @@ input[type="number"]::-webkit-inner-spin-button {
   .main-nav-link {
     padding: 11px 12px;
     border-radius: 3px;
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--font-scale));
   }
 
   .main-nav-link:hover {
@@ -2839,11 +2844,11 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .history-warning h2 {
-    font-size: 13.5px;
+    font-size: calc(13.5px * var(--font-scale));
   }
 
   .history-warning-copy>p:last-child {
-    font-size: 11px;
+    font-size: calc(11px * var(--font-scale));
   }
 
   .history-section-head {
@@ -2887,7 +2892,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .history-total {
-    font-size: 26px;
+    font-size: calc(26px * var(--font-scale));
   }
 
   .history-params {
@@ -2912,7 +2917,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .summary-metric strong {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
   }
 
   .period-grid {
@@ -2957,7 +2962,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .page-title {
-    font-size: 30px;
+    font-size: calc(30px * var(--font-scale));
   }
 
   .card-head {
@@ -3043,7 +3048,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .page-description {
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale));
   }
 
   .page-facts {
@@ -3061,7 +3066,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .entry-count {
-    font-size: 9px;
+    font-size: calc(9px * var(--font-scale));
   }
 }
 
@@ -3095,7 +3100,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .brand-sub {
-    font-size: 9px;
+    font-size: calc(9px * var(--font-scale));
     letter-spacing: 0.01em;
   }
 
@@ -3111,11 +3116,11 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .page-title {
-    font-size: 28px;
+    font-size: calc(28px * var(--font-scale));
   }
 
   .eyebrow {
-    font-size: 9.5px;
+    font-size: calc(9.5px * var(--font-scale));
   }
 
   .page-intro {
@@ -3135,7 +3140,7 @@ input[type="number"]::-webkit-inner-spin-button {
     width: 24px;
     height: 24px;
     flex-basis: 24px;
-    font-size: 9.5px;
+    font-size: calc(9.5px * var(--font-scale));
   }
 
   .card-sub {
@@ -3153,7 +3158,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .estimate-amount {
-    font-size: 30px;
+    font-size: calc(30px * var(--font-scale));
   }
 
   .summary-grid {
@@ -3165,11 +3170,11 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .summary-metric strong {
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale));
   }
 
   .summary-metric span {
-    font-size: 7.5px;
+    font-size: calc(7.5px * var(--font-scale));
   }
 
   .grand-total {
@@ -3178,11 +3183,11 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .grand-amount {
-    font-size: 25px;
+    font-size: calc(25px * var(--font-scale));
   }
 
   .sheet-actions .btn {
-    font-size: 11.5px;
+    font-size: calc(11.5px * var(--font-scale));
     padding-left: 8px;
     padding-right: 8px;
   }
@@ -3206,20 +3211,20 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .history-warning-label {
     align-items: flex-start;
-    font-size: 8px;
+    font-size: calc(8px * var(--font-scale));
     letter-spacing: 0.06em;
   }
 
   .history-warning h2 {
-    font-size: 13px;
+    font-size: calc(13px * var(--font-scale));
   }
 
   .history-total {
-    font-size: 25px;
+    font-size: calc(25px * var(--font-scale));
   }
 
   .history-meta {
-    font-size: 9.5px;
+    font-size: calc(9.5px * var(--font-scale));
   }
 
   .history-params {
@@ -3303,7 +3308,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--paper);
   box-shadow: var(--shadow-card);
   color: var(--ink-800);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 500;
   transition:
     border-color 0.15s ease,
@@ -3322,7 +3327,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .guide-index-num {
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.01em;
   color: var(--ink-400);
 }
@@ -3343,7 +3348,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .guide-body>p {
   color: var(--ink-600);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   line-height: 1.7;
 }
 
@@ -3354,7 +3359,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .guide-body h3 {
   margin: 20px 0 6px;
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
   line-height: 1.4;
 }
@@ -3388,7 +3393,7 @@ input[type="number"]::-webkit-inner-spin-button {
   position: relative;
   padding-left: 18px;
   color: var(--ink-600);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   line-height: 1.65;
 }
 
@@ -3409,7 +3414,7 @@ input[type="number"]::-webkit-inner-spin-button {
   top: 0;
   left: 0;
   color: var(--accent-text);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   font-weight: 700;
 }
 
@@ -3434,14 +3439,14 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .guide-terms dt {
   color: var(--ink-900);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
 }
 
 .guide-terms dd {
   margin: 0;
   color: var(--ink-600);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   line-height: 1.65;
 }
 
@@ -3463,7 +3468,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-bottom: 6px;
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -3475,7 +3480,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .guide-callout p,
 .guide-callout li {
   color: var(--ink-700);
-  font-size: 11.75px;
+  font-size: calc(11.75px * var(--font-scale));
   line-height: 1.65;
 }
 
@@ -3505,7 +3510,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .guide-tariff-table th,
 .guide-tariff-table td {
   padding: 9px 12px;
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   vertical-align: top;
 }
 
@@ -3522,7 +3527,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .guide-tariff-key {
   color: var(--ink-900);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 500;
   white-space: nowrap;
 }
@@ -3537,7 +3542,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--ink-400);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -3558,13 +3563,13 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-bottom: 4px;
   color: var(--accent-text);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   letter-spacing: 0.01em;
 }
 
 .method-callout h2 {
   color: var(--ink-900);
-  font-size: 14px;
+  font-size: calc(14px * var(--font-scale));
   font-weight: 600;
 }
 
@@ -3572,7 +3577,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-top: 4px;
   max-width: 62ch;
   color: var(--ink-600);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -3593,7 +3598,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .guide-index-link {
     padding: 10px 11px;
-    font-size: 11.5px;
+    font-size: calc(11.5px * var(--font-scale));
   }
 
   .guide-index-num {
@@ -3660,7 +3665,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-top: 1px solid var(--line);
   background: var(--wash);
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -3681,7 +3686,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--wash);
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -3720,7 +3725,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .period-card-head h3 {
   color: var(--ink-900);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 600;
   line-height: 1.35;
 }
@@ -3729,7 +3734,7 @@ input[type="number"]::-webkit-inner-spin-button {
   flex: 0 0 auto;
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 8.5px;
+  font-size: calc(8.5px * var(--font-scale));
   line-height: 1.5;
   letter-spacing: 0.02em;
   text-align: right;
@@ -3738,7 +3743,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .period-card-meta {
   margin-top: 4px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -3752,26 +3757,26 @@ input[type="number"]::-webkit-inner-spin-button {
 .period-table th,
 .period-table td {
   padding: 6px 8px;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
 }
 
 .period-table th {
-  font-size: 7.5px;
+  font-size: calc(7.5px * var(--font-scale));
 }
 
 .period-table tfoot td {
   padding: 7px 8px;
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
 }
 
 .period-table tfoot .num {
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
 }
 
 .period-card-basis {
   margin-top: 10px;
   color: var(--ink-500);
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   line-height: 1.5;
 }
 
@@ -3793,7 +3798,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 5px;
   background: var(--paper);
   color: var(--ink-600);
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   line-height: 1.4;
 }
 
@@ -3827,7 +3832,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-top: 1px solid var(--danger-line);
   background: var(--danger-bg);
   color: var(--danger);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -3863,14 +3868,14 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .history-period-head strong {
   color: var(--ink-800);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 600;
 }
 
 .history-period-head span {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 8.5px;
+  font-size: calc(8.5px * var(--font-scale));
 }
 
 .history-period-meta {
@@ -3883,14 +3888,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .history-period-meta dt {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 8.5px;
+  font-size: calc(8.5px * var(--font-scale));
   letter-spacing: 0.01em;
 }
 
 .history-period-meta dd {
   margin-top: 1px;
   color: var(--ink-700);
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   font-variant-numeric: tabular-nums;
 }
 
@@ -3904,7 +3909,7 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 10px;
   padding: 22px;
   color: var(--ink-500);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
 }
 
 .net-page .net-loading svg {
@@ -3949,14 +3954,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-brand {
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   letter-spacing: 0.02em;
 }
 
 .net-hero h2 {
   margin-top: 6px;
   color: var(--panel-ink);
-  font-size: 20px;
+  font-size: calc(20px * var(--font-scale));
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -3965,7 +3970,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-sub {
   margin-top: 4px;
   color: var(--panel-muted);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
 }
 
 .net-generated {
@@ -3976,7 +3981,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   color: var(--panel-muted);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
   letter-spacing: 0.01em;
 }
 
@@ -3984,7 +3989,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   margin-top: 4px;
   color: var(--panel-ink);
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
   font-weight: 500;
 }
 
@@ -4004,7 +4009,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-section h3 {
   color: var(--ink-800);
-  font-size: 13.5px;
+  font-size: calc(13.5px * var(--font-scale));
   font-weight: 600;
 }
 
@@ -4019,7 +4024,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-section-head span {
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
 }
 
 .net-credentials {
@@ -4036,7 +4041,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: transparent;
   color: var(--ink-500);
   font-family: inherit;
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   font-weight: 400;
   letter-spacing: normal;
   white-space: normal;
@@ -4047,13 +4052,13 @@ input[type="number"]::-webkit-inner-spin-button {
   padding: 9px 12px;
   border-bottom: 1px solid var(--line-soft);
   color: var(--ink-800);
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   white-space: normal;
 }
 
 .net-credit {
   color: var(--ink-900);
-  font-size: 15px;
+  font-size: calc(15px * var(--font-scale));
   font-weight: 600;
 }
 
@@ -4067,7 +4072,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-compare th,
 .net-compare td {
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: calc(12px * var(--font-scale));
   white-space: nowrap;
 }
 
@@ -4078,14 +4083,14 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-compare tfoot td {
   background: var(--accent-tint);
-  font-size: 12.5px;
+  font-size: calc(12.5px * var(--font-scale));
   font-weight: 600;
 }
 
 .net-compare tfoot tr.grand td {
   background: var(--panel);
   color: var(--panel-ink);
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
 }
 
 .net-params {
@@ -4102,14 +4107,14 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-params dt {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
   letter-spacing: 0.01em;
 }
 
 .net-params dd {
   margin-top: 2px;
   color: var(--ink-800);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-variant-numeric: tabular-nums;
 }
 
@@ -4136,20 +4141,20 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-period-head strong {
   color: var(--ink-800);
-  font-size: 11.5px;
+  font-size: calc(11.5px * var(--font-scale));
   font-weight: 600;
 }
 
 .net-period-head span {
   color: var(--ink-500);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 9px;
+  font-size: calc(9px * var(--font-scale));
 }
 
 .net-period p {
   margin-top: 3px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
 }
 
 .net-period-totals {
@@ -4161,7 +4166,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .net-period-totals span {
   color: var(--ink-600);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
 }
 
 .net-period-totals b {
@@ -4180,13 +4185,13 @@ input[type="number"]::-webkit-inner-spin-button {
 .net-ledger th,
 .net-ledger td {
   padding: 7px 9px;
-  font-size: 11px;
+  font-size: calc(11px * var(--font-scale));
 }
 
 .net-empty {
   margin-top: 8px;
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   line-height: 1.6;
 }
 
@@ -4205,7 +4210,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--wash);
   color: var(--ink-700);
   font-family: var(--font-mono), "Consolas", monospace;
-  font-size: 13px;
+  font-size: calc(13px * var(--font-scale));
   font-variant-numeric: tabular-nums;
 }
 
@@ -4221,7 +4226,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin-top: 14px;
   padding: 0 4px;
   color: var(--ink-500);
-  font-size: 10px;
+  font-size: calc(10px * var(--font-scale));
   line-height: 1.55;
 }
 
@@ -4258,7 +4263,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .guide-period strong {
   display: block;
   color: var(--ink-800);
-  font-size: 10.5px;
+  font-size: calc(10.5px * var(--font-scale));
   font-weight: 600;
 }
 
@@ -4266,7 +4271,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   margin-top: 3px;
   color: var(--ink-500);
-  font-size: 9.5px;
+  font-size: calc(9.5px * var(--font-scale));
 }
 
 @media (max-width: 900px) {
@@ -4319,6 +4324,7 @@ input[type="number"]::-webkit-inner-spin-button {
   :root,
   [data-theme="dark"] {
     color-scheme: light;
+    --font-scale: 1;
     --canvas: #ffffff;
     --paper: #ffffff;
     --paper-2: #ffffff;
@@ -5106,6 +5112,14 @@ input[type="number"]::-webkit-inner-spin-button {
   .net-compare tfoot tr.grand td {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  /* Keep the grand total row on the red panel in the printed PDF.
+     The generic `.data-table tfoot td` print rule forces accent-tint
+     with !important, which was wiping out this row's red background. */
+  .net-compare tfoot tr.grand td {
+    background: var(--panel) !important;
+    color: var(--panel-ink) !important;
   }
 
   .net-params {

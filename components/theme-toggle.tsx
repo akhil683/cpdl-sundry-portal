@@ -33,21 +33,6 @@ export function ThemeToggle() {
   useEffect(() => {
     const current = document.documentElement.dataset.theme;
     setTheme(current === "dark" ? "dark" : "light");
-
-    const query = window.matchMedia("(prefers-color-scheme: dark)");
-    function handleSystemChange(event: MediaQueryListEvent) {
-      try {
-        if (window.localStorage.getItem(THEME_KEY)) return;
-      } catch {
-        return;
-      }
-      const next: Theme = event.matches ? "dark" : "light";
-      applyTheme(next, false);
-      setTheme(next);
-    }
-
-    query.addEventListener("change", handleSystemChange);
-    return () => query.removeEventListener("change", handleSystemChange);
   }, []);
 
   function toggleTheme() {

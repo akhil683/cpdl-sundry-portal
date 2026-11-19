@@ -31,13 +31,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#edf0ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1310" },
-  ],
+  themeColor: "#edf0ea",
 };
 
-const themeInit = `(function(){try{var k="cpdl-theme";var stored=localStorage.getItem(k);var theme=stored==="light"||stored==="dark"?stored:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=theme;}catch(e){}})();`;
+const themeInit = `(function(){try{var k="cpdl-theme";var s=localStorage.getItem(k);var t=s==="light"||s==="dark"?s:"light";document.documentElement.dataset.theme=t;document.addEventListener("DOMContentLoaded",function(){var c=t==="dark"?"#0e1310":"#edf0ea";document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=c;});});}catch(e){}})();`;
 
 export default function RootLayout({
   children,
