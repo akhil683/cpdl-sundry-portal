@@ -64,8 +64,8 @@ export const ENERGY_SLAB_MONTH = 30;
 export const MC_RATE = 0.16;
 /** From 01-11-2025 fixed charges use 85% of the sanctioned load. */
 export const FIXED_LOAD_FACTOR = 0.85;
-export const ED_RATE_BEFORE_APR_2026 = 0.12;
-export const ED_RATE_FROM_APR_2026 = 0.16;
+export const ED_RATE_BEFORE_APR_2026 = 0.09;
+export const ED_RATE_FROM_APR_2026 = 0.09;
 export const TARIFF_CUTOFFS = ["2025-11-01", "2026-04-01"] as const;
 
 export const TARIFF_PERIODS: TariffPeriod[] = [
