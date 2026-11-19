@@ -56,7 +56,6 @@ export interface TariffPeriod {
   id: TariffPeriodId;
   label: string;
   range: string;
-  edRate: number;
 }
 
 export const FIXED_CHARGE_MONTH = 365 / 12;
@@ -64,8 +63,14 @@ export const ENERGY_SLAB_MONTH = 30;
 export const MC_RATE = 0.16;
 /** From 01-11-2025 fixed charges use 85% of the sanctioned load. */
 export const FIXED_LOAD_FACTOR = 0.85;
-export const ED_RATE_BEFORE_APR_2026 = 0.09;
-export const ED_RATE_FROM_APR_2026 = 0.09;
+/**
+ * Electricity duty is charged per unit by tariff category, not by date:
+ * LTDS-II pays ₹0.09/unit, agricultural categories are exempt, and every
+ * other category pays ₹0.11/unit.
+ */
+export const ED_RATE_LTDS_II = 0.09;
+export const ED_RATE_AGRICULTURAL = 0;
+export const ED_RATE_DEFAULT = 0.11;
 export const TARIFF_CUTOFFS = ["2025-11-01", "2026-04-01"] as const;
 
 export const TARIFF_PERIODS: TariffPeriod[] = [
@@ -73,19 +78,16 @@ export const TARIFF_PERIODS: TariffPeriod[] = [
     id: "old",
     label: "Old tariff",
     range: "Before 01-11-2025",
-    edRate: ED_RATE_BEFORE_APR_2026,
   },
   {
     id: "2025-26",
     label: "Approved tariff 2025–26",
     range: "01-11-2025 to 31-03-2026",
-    edRate: ED_RATE_BEFORE_APR_2026,
   },
   {
     id: "2026-27",
     label: "Tariff 2026–27",
     range: "From 01-04-2026",
-    edRate: ED_RATE_FROM_APR_2026,
   },
 ];
 
@@ -611,10 +613,10 @@ export function getTariffPeriod(id: TariffPeriodId): TariffPeriod {
   return TARIFF_PERIODS.find((period) => period.id === id) ?? TARIFF_PERIODS[2];
 }
 
-export function edRateFor(date: string): number {
-  return date < "2026-04-01"
-    ? ED_RATE_BEFORE_APR_2026
-    : ED_RATE_FROM_APR_2026;
+export function edRateFor(category: TariffKey): number {
+  if (category === "LTDS-II") return ED_RATE_LTDS_II;
+  if (TARIFFS[category]?.group === "Agricultural") return ED_RATE_AGRICULTURAL;
+  return ED_RATE_DEFAULT;
 }
 
 function fallbackLabels(kind: TariffKind): string[] {
@@ -901,7 +903,7 @@ export function calculateBill(
     }
 
     const energy = split.rows.reduce((sum, row) => sum + row.amount, 0);
-    const edRate = edRateFor(segment.start);
+    const edRate = edRateFor(category);
     const ed = edRate * segmentUnits;
     const mc = MC_RATE * segmentUnits;
     const isOldTariff = segment.start < "2025-11-01";
