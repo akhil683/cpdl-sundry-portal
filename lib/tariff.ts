@@ -1,3 +1,6 @@
+Done in the project file. Here's the corrected code — `edRate` stays on `TariffPeriod`, while the actual ED calculation remains category-wise.
+
+```ts
 export type TariffGroup =
   | "Domestic"
   | "Commercial"
@@ -56,6 +59,7 @@ export interface TariffPeriod {
   id: TariffPeriodId;
   label: string;
   range: string;
+  edRate: number;
 }
 
 export const FIXED_CHARGE_MONTH = 365 / 12;
@@ -68,6 +72,8 @@ export const FIXED_LOAD_FACTOR = 0.85;
  * LTDS-II pays ₹0.09/unit, agricultural categories are exempt, and every
  * other category pays ₹0.11/unit.
  */
+export const ED_RATE_BEFORE_APR_2026 = 0.09;
+export const ED_RATE_FROM_APR_2026 = 0.09;
 export const ED_RATE_LTDS_II = 0.09;
 export const ED_RATE_AGRICULTURAL = 0;
 export const ED_RATE_DEFAULT = 0.11;
@@ -78,16 +84,19 @@ export const TARIFF_PERIODS: TariffPeriod[] = [
     id: "old",
     label: "Old tariff",
     range: "Before 01-11-2025",
+    edRate: ED_RATE_BEFORE_APR_2026,
   },
   {
     id: "2025-26",
     label: "Approved tariff 2025–26",
     range: "01-11-2025 to 31-03-2026",
+    edRate: ED_RATE_BEFORE_APR_2026,
   },
   {
     id: "2026-27",
     label: "Tariff 2026–27",
     range: "From 01-04-2026",
+    edRate: ED_RATE_FROM_APR_2026,
   },
 ];
 
@@ -972,3 +981,4 @@ export function calculateBill(
     slabLimit,
   };
 }
+```
