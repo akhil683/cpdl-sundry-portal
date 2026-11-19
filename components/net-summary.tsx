@@ -78,15 +78,6 @@ export function NetSummary() {
         generatedOn={generatedOn}
       />
 
-      <p className="net-hint">
-        <Info size={13} strokeWidth={1.8} aria-hidden="true" />
-        <span>
-          The summary reads the latest saved estimate and the already-charged
-          sheet from this browser. Use Print / save net PDF and choose “Save as
-          PDF” in the print destination.
-        </span>
-      </p>
-
       <div className="net-quick-links">
         <Link className="btn btn-ghost btn-sm" href="/to-be-charged">
           <Calculator size={14} strokeWidth={1.8} aria-hidden="true" />

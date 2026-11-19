@@ -225,42 +225,6 @@ export function NetSummaryDocument({
                 </div>
               </dl>
 
-              {latest.segments && latest.segments.length > 0 ? (
-                <div className="net-periods">
-                  {latest.segments.map((segment) => (
-                    <article
-                      className="net-period"
-                      key={`${segment.period}-${segment.from}`}
-                    >
-                      <div className="net-period-head">
-                        <strong>{segment.label}</strong>
-                        <span>
-                          {formatDate(segment.from)} – {formatDate(segment.to)}
-                        </span>
-                      </div>
-                      <p>
-                        {segment.days} days ·{" "}
-                        {formatQuantity(segment.units)} {latest.unit} · ED{" "}
-                        {formatCurrency(segment.edRate)}/{latest.unit}
-                      </p>
-                      <div className="net-period-totals">
-                        <span>
-                          Energy <b>{formatCurrency(segment.energy)}</b>
-                        </span>
-                        <span>
-                          Fixed <b>{formatCurrency(segment.fixed)}</b>
-                        </span>
-                        <span>
-                          ED <b>{formatCurrency(segment.ed)}</b>
-                        </span>
-                        <span>
-                          MC <b>{formatCurrency(segment.mc)}</b>
-                        </span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              ) : null}
             </>
           ) : (
             <p className="net-empty">
