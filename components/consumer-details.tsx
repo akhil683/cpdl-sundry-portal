@@ -5,6 +5,7 @@ import { IdCard, Info } from "lucide-react";
 import {
   DIVISIONS,
   EMPTY_CONSUMER,
+  PREMISES_TYPES,
   SUB_DIVISIONS,
   readConsumer,
   writeConsumer,
@@ -97,6 +98,39 @@ export function ConsumerDetailsCard() {
           />
         </div>
 
+        <div className="field">
+          <label className="field-label" htmlFor="consumer-meter">
+            Meter number
+          </label>
+          <input
+            id="consumer-meter"
+            className="control"
+            type="text"
+            value={details.meterNumber}
+            onChange={(event) => update("meterNumber", event.target.value)}
+            placeholder="Enter meter number"
+          />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="consumer-premises">
+            Premises type
+          </label>
+          <select
+            id="consumer-premises"
+            className="control"
+            value={details.premisesType}
+            onChange={(event) => update("premisesType", event.target.value)}
+          >
+            <option value="">Select premises type</option>
+            {PREMISES_TYPES.map((premisesType) => (
+              <option key={premisesType} value={premisesType}>
+                {premisesType}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="field consumer-address">
           <label className="field-label" htmlFor="consumer-address">
             Address
@@ -108,6 +142,34 @@ export function ConsumerDetailsCard() {
             onChange={(event) => update("address", event.target.value)}
             placeholder="Enter complete consumer address"
             rows={2}
+          />
+        </div>
+
+        <div className="field consumer-wide">
+          <label className="field-label" htmlFor="consumer-description">
+            Brief description
+          </label>
+          <textarea
+            id="consumer-description"
+            className="control consumer-textarea"
+            value={details.description}
+            onChange={(event) => update("description", event.target.value)}
+            placeholder="Enter a brief description"
+            rows={2}
+          />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="consumer-rate-category">
+            Rate category
+          </label>
+          <input
+            id="consumer-rate-category"
+            className="control"
+            type="text"
+            value={details.rateCategory}
+            onChange={(event) => update("rateCategory", event.target.value)}
+            placeholder="Enter rate category"
           />
         </div>
 

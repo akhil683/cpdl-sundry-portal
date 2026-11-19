@@ -3649,6 +3649,10 @@ input[type="number"]::-webkit-inner-spin-button {
   grid-column: span 2;
 }
 
+.consumer-wide {
+  grid-column: span 2;
+}
+
 .consumer-textarea {
   height: auto;
   min-height: 64px;
@@ -4282,6 +4286,10 @@ input[type="number"]::-webkit-inner-spin-button {
   .consumer-address {
     grid-column: span 2;
   }
+
+  .consumer-wide {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 640px) {
@@ -4290,6 +4298,10 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 
   .consumer-address {
+    grid-column: span 1;
+  }
+
+  .consumer-wide {
     grid-column: span 1;
   }
 

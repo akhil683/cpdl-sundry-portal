@@ -10,6 +10,10 @@ export interface ConsumerDetails {
   subDivision: string;
   currentBalance: string;
   netPayable: string;
+  premisesType: string;
+  rateCategory: string;
+  meterNumber: string;
+  description: string;
 }
 
 export const EMPTY_CONSUMER: ConsumerDetails = {
@@ -21,7 +25,13 @@ export const EMPTY_CONSUMER: ConsumerDetails = {
   subDivision: "",
   currentBalance: "",
   netPayable: "",
+  premisesType: "",
+  rateCategory: "",
+  meterNumber: "",
+  description: "",
 };
+
+export const PREMISES_TYPES = ["Government", "Private"] as const;
 
 export const DIVISIONS = [
   "Division 1",
@@ -61,6 +71,14 @@ export function readConsumer(): ConsumerDetails {
         typeof parsed.currentBalance === "string" ? parsed.currentBalance : "",
       netPayable:
         typeof parsed.netPayable === "string" ? parsed.netPayable : "",
+      premisesType:
+        typeof parsed.premisesType === "string" ? parsed.premisesType : "",
+      rateCategory:
+        typeof parsed.rateCategory === "string" ? parsed.rateCategory : "",
+      meterNumber:
+        typeof parsed.meterNumber === "string" ? parsed.meterNumber : "",
+      description:
+        typeof parsed.description === "string" ? parsed.description : "",
     };
   } catch {
     return EMPTY_CONSUMER;

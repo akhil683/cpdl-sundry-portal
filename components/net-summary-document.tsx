@@ -35,6 +35,10 @@ export function displayConsumer(
     subDivision: valueOrDash(consumer.subDivision),
     currentBalance: valueOrDash(consumer.currentBalance),
     netPayable: valueOrDash(consumer.netPayable),
+    premisesType: valueOrDash(consumer.premisesType),
+    rateCategory: valueOrDash(consumer.rateCategory),
+    meterNumber: valueOrDash(consumer.meterNumber),
+    description: valueOrDash(consumer.description),
   };
 }
 
@@ -83,30 +87,42 @@ export function NetSummaryDocument({
                 <td>{details.caNumber}</td>
               </tr>
               <tr>
+                <th scope="row">Meter number</th>
+                <td>{details.meterNumber}</td>
+                <th scope="row">Rate category</th>
+                <td>{details.rateCategory}</td>
+              </tr>
+              <tr>
+                <th scope="row">Premises type</th>
+                <td>{details.premisesType}</td>
+                <th scope="row">Sanctioned load / demand</th>
+                <td>{details.load}</td>
+              </tr>
+              <tr>
                 <th scope="row">Address</th>
                 <td colSpan={3}>{details.address}</td>
               </tr>
               <tr>
-                <th scope="row">Sanctioned load / demand</th>
-                <td>{details.load}</td>
+                <th scope="row">Brief description</th>
+                <td colSpan={3}>{details.description}</td>
+              </tr>
+              <tr>
                 <th scope="row">Division</th>
                 <td>{details.division}</td>
-              </tr>
-              <tr>
                 <th scope="row">Sub division</th>
                 <td>{details.subDivision}</td>
+              </tr>
+              <tr>
                 <th scope="row">Current balance as per FPL9</th>
                 <td>{details.currentBalance}</td>
-              </tr>
-              <tr>
                 <th scope="row">Net payable after adjustment</th>
                 <td>{details.netPayable}</td>
-                <th scope="row">Net credit units</th>
-                <td>{formatQuantity(net.net.units)}</td>
               </tr>
               <tr>
+                <th scope="row">Net credit units</th>
+                <td>{formatQuantity(net.net.units)}</td>
                 <th scope="row">Net credit amount</th>
-                <td colSpan={3}>
+                <td>
                   <strong className="net-credit">
                     {formatCurrency(net.netTotal)}
                   </strong>
