@@ -50,6 +50,10 @@ import {
   CONSUMER_UPDATED_EVENT,
   readConsumer,
 } from "@/lib/consumer";
+import {
+  readStoredEstimate,
+  writeStoredEstimate,
+} from "@/lib/estimate";
 
 interface FormState {
   category: TariffKey;
@@ -214,24 +218,44 @@ export function TariffCalculator() {
   }, []);
 
   useEffect(() => {
+    const stored = readStoredEstimate();
+
+    if (stored) {
+      formRef.current = stored.form;
+      setForm(stored.form);
+      setEstimate(stored.result);
+
+      if (stored.result) {
+        setStatus({
+          tone: "success",
+          message: `Estimate restored from this browser for ${stored.result.category} across ${stored.result.days} billing days and ${stored.result.segments.length} tariff period(s). Update an input and calculate again to refresh it.`,
+        });
+        reportRef.current = buildReport(stored.result, {
+          from: stored.form.from,
+          to: stored.form.to,
+        });
+      }
+    } else {
+      const { load } = readConsumer();
+
+      if (load.trim() !== "") {
+        const nextForm = { ...formRef.current, load };
+        formRef.current = nextForm;
+        setForm(nextForm);
+      }
+    }
+
     function syncConsumerLoad() {
       const { load } = readConsumer();
       if (load.trim() === "" || formRef.current.load === load) return;
 
-      setForm((current) => ({ ...current, load }));
-      setEstimate(null);
-      setErrors({});
-      setStatus(INITIAL_STATUS);
-      setCopyState("idle");
-      setHistoryStatus(null);
-      reportRef.current = "";
-      if (copyTimer.current) {
-        clearTimeout(copyTimer.current);
-        copyTimer.current = null;
-      }
+      const nextForm = { ...formRef.current, load };
+      formRef.current = nextForm;
+      setForm(nextForm);
+      clearCalculatedState();
+      writeStoredEstimate({ form: nextForm, result: null });
     }
 
-    syncConsumerLoad();
     window.addEventListener(CONSUMER_UPDATED_EVENT, syncConsumerLoad);
 
     return () => {
@@ -279,22 +303,28 @@ export function TariffCalculator() {
   }
 
   function updateField(field: keyof FormState, value: string) {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextForm = { ...form, [field]: value };
+    setForm(nextForm);
     clearCalculatedState();
+    writeStoredEstimate({ form: nextForm, result: null });
   }
 
   function handleCategoryChange(category: TariffKey) {
-    setForm((current) => ({
-      ...current,
+    const nextForm = {
+      ...form,
       category,
       subtype: getDefaultSubtype(category),
-    }));
+    };
+    setForm(nextForm);
     clearCalculatedState();
+    writeStoredEstimate({ form: nextForm, result: null });
   }
 
   function handleSubtypeChange(subtype: TariffSubtype) {
-    setForm((current) => ({ ...current, subtype }));
+    const nextForm = { ...form, subtype };
+    setForm(nextForm);
     clearCalculatedState();
+    writeStoredEstimate({ form: nextForm, result: null });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -408,11 +438,13 @@ export function TariffCalculator() {
       from: form.from,
       to: form.to,
     });
+    writeStoredEstimate({ form, result: nextEstimate });
   }
 
   function handleReset() {
     setForm(INITIAL_FORM);
     clearCalculatedState();
+    writeStoredEstimate({ form: INITIAL_FORM, result: null });
   }
 
   async function handleCopy() {

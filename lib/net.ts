@@ -15,6 +15,7 @@ export interface ChargeBreakdown {
   fixed: number;
   solar: number;
   others: number;
+  allowance: number;
 }
 
 export interface NetSummary {
@@ -39,6 +40,7 @@ export const NET_ROWS: {
   { key: "fixed", label: "Fixed charges" },
   { key: "solar", label: "Solar user charges" },
   { key: "others", label: "Others" },
+  { key: "allowance", label: "Allowance" },
 ];
 
 function emptyBreakdown(): ChargeBreakdown {
@@ -51,6 +53,7 @@ function emptyBreakdown(): ChargeBreakdown {
     fixed: 0,
     solar: 0,
     others: 0,
+    allowance: 0,
   };
 }
 

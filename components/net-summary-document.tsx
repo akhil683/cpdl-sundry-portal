@@ -285,6 +285,9 @@ export function NetSummaryDocument({
                     <th scope="col" className="num">
                       Others
                     </th>
+                    <th scope="col" className="num">
+                      Allowance
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -316,6 +319,9 @@ export function NetSummaryDocument({
                       </td>
                       <td className="num">
                         {formatCurrency(numericValue(entry.others))}
+                      </td>
+                      <td className="num">
+                        {formatCurrency(numericValue(entry.allowance))}
                       </td>
                     </tr>
                   ))}

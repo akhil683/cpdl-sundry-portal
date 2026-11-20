@@ -360,7 +360,7 @@ export default function GuidePage() {
               The <Link href="/already-charged">Already charged</Link> sheet
               records amounts that have already been billed. Add one row per
               billed period and fill the charge heads that apply: units, energy,
-              fixed, MC, ED, solar, FPPCA and others.
+              fixed, MC, ED, solar, FPPCA, others and allowance.
             </p>
             <ul className="guide-list">
               <li>Blank amount fields count as zero.</li>
@@ -369,9 +369,11 @@ export default function GuidePage() {
                 the from date is excluded.
               </li>
               <li>
-                Each row total is the sum of its charge heads, and the grand
-                total sums every row across the sheet. Units are tracked
-                separately.
+                Each row total is the sum of its charge heads. Every amount
+                field accepts negative values: a negative amount is subtracted
+                from the row total and grand total, while a positive amount is
+                added. The grand total sums every row across the sheet. Units
+                are tracked separately.
               </li>
               <li>
                 Totals update automatically, so no separate calculate step is
@@ -419,7 +421,8 @@ export default function GuidePage() {
                 </li>
                 <li>
                   A charge-wise table for units, energy, ED, MC, FPPCA, fixed,
-                  solar and others, with subtotal and grand net amount.
+                  solar, others and allowance, with subtotal and grand net
+                  amount.
                 </li>
                 <li>
                   The tariff-period calculation behind the estimate and the

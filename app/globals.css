@@ -3824,8 +3824,12 @@ input[type="number"]::-webkit-inner-spin-button {
   width: 78px;
 }
 
+.col-allowance {
+  width: 88px;
+}
+
 .ledger-table {
-  min-width: 1144px;
+  min-width: 1232px;
 }
 
 .ledger-storage-error {
@@ -4646,6 +4650,10 @@ input[type="number"]::-webkit-inner-spin-button {
 
   .ledger-table .col-solar {
     width: 12%;
+  }
+
+  .ledger-table .col-allowance {
+    width: 8%;
   }
 
   .ledger-table .col-total {

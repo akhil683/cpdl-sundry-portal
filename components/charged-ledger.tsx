@@ -35,6 +35,7 @@ interface Entry {
   solar: string;
   fppca: string;
   others: string;
+  allowance: string;
 }
 
 function createEntry(id: number): Entry {
@@ -50,6 +51,7 @@ function createEntry(id: number): Entry {
     solar: "",
     fppca: "",
     others: "",
+    allowance: "",
   };
 }
 
@@ -78,6 +80,7 @@ function toLedgerEntry(entry: Entry): LedgerEntry {
     solar: entry.solar,
     fppca: entry.fppca,
     others: entry.others,
+    allowance: entry.allowance,
   };
 }
 
@@ -105,6 +108,7 @@ export function ChargedLedger() {
         solar: entry.solar,
         fppca: entry.fppca,
         others: entry.others,
+        allowance: entry.allowance,
       }));
 
       setEntries(restored);
@@ -147,6 +151,7 @@ export function ChargedLedger() {
         accumulator.fixed += numericValue(entry.fixed);
         accumulator.solar += numericValue(entry.solar);
         accumulator.others += numericValue(entry.others);
+        accumulator.allowance += numericValue(entry.allowance);
         accumulator.grand += entryTotal(entry);
         if (days !== null) accumulator.days += days;
 
@@ -161,6 +166,7 @@ export function ChargedLedger() {
         fixed: 0,
         solar: 0,
         others: 0,
+        allowance: 0,
         days: 0,
         grand: 0,
       },
@@ -176,12 +182,6 @@ export function ChargedLedger() {
   );
 
   function updateEntry(id: number, field: EntryField, value: string) {
-    const numericFields: EntryField[] = ["units", ...LEDGER_AMOUNT_FIELDS];
-
-    if (numericFields.includes(field) && value !== "" && Number(value) < 0) {
-      return;
-    }
-
     setEntries((current) =>
       current.map((entry) =>
         entry.id === id ? { ...entry, [field]: value } : entry,
@@ -258,6 +258,10 @@ export function ChargedLedger() {
       label: "Total others",
       value: formatCurrency(totals.others),
     },
+    {
+      label: "Total allowance",
+      value: formatCurrency(totals.allowance),
+    },
   ];
 
   return (
@@ -297,6 +301,7 @@ export function ChargedLedger() {
               <col className="col-solar" />
               <col className="col-amount" />
               <col className="col-others" />
+              <col className="col-allowance" />
               <col className="col-total" />
               <col className="col-action" />
             </colgroup>
@@ -333,6 +338,13 @@ export function ChargedLedger() {
                 </th>
                 <th scope="col" className="num">
                   Others
+                </th>
+                <th
+                  scope="col"
+                  className="num"
+                  title="Positive values add to the row total; negative values deduct."
+                >
+                  Allowance
                 </th>
                 <th scope="col" className="num">
                   Row total
@@ -391,7 +403,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -406,7 +417,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -421,7 +431,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -436,7 +445,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -451,7 +459,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -466,7 +473,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -481,7 +487,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -496,7 +501,6 @@ export function ChargedLedger() {
                       <input
                         className="ledger-input ledger-amount"
                         type="number"
-                        min="0"
                         step="0.01"
                         inputMode="decimal"
                         placeholder="0.00"
@@ -505,6 +509,20 @@ export function ChargedLedger() {
                           updateEntry(entry.id, "others", event.target.value)
                         }
                         aria-label={`Other charges, ${rowLabel}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="ledger-input ledger-amount"
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={entry.allowance}
+                        onChange={(event) =>
+                          updateEntry(entry.id, "allowance", event.target.value)
+                        }
+                        aria-label={`Allowance, ${rowLabel}`}
                       />
                     </td>
                     <td className="row-total">

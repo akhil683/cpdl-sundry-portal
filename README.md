@@ -58,6 +58,7 @@ lib/
   tariff.ts          Tariff periods, schedule, billing rules and calculations
   ledger.ts          Charged-entry storage, totals and validation
   consumer.ts        Consumer credential storage
+  estimate.ts        To be charged inputs and last estimate storage
   net.ts             Net summary calculation
   history.ts         Local storage records and validation
   format.ts          INR and number formatting helpers

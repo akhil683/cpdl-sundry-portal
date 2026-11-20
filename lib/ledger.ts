@@ -13,6 +13,7 @@ export interface LedgerEntry {
   solar: string;
   fppca: string;
   others: string;
+  allowance: string;
 }
 
 export type LedgerSnapshot = Omit<LedgerEntry, "id">;
@@ -30,14 +31,19 @@ const FIELDS = [
   "others",
 ] as const;
 
-function isLedgerEntry(value: unknown): value is LedgerEntry {
+type StoredLedgerEntry = Omit<LedgerEntry, "allowance"> & {
+  allowance?: string;
+};
+
+function isLedgerEntry(value: unknown): value is StoredLedgerEntry {
   if (!value || typeof value !== "object") return false;
 
   const entry = value as Record<string, unknown>;
 
   return (
     typeof entry.id === "string" &&
-    FIELDS.every((field) => typeof entry[field] === "string")
+    FIELDS.every((field) => typeof entry[field] === "string") &&
+    (entry.allowance === undefined || typeof entry.allowance === "string")
   );
 }
 
@@ -51,7 +57,10 @@ export function readLedger(): LedgerEntry[] {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
 
-    return parsed.filter(isLedgerEntry);
+    return parsed.filter(isLedgerEntry).map((entry) => ({
+      ...entry,
+      allowance: typeof entry.allowance === "string" ? entry.allowance : "",
+    }));
   } catch {
     return [];
   }
@@ -72,7 +81,7 @@ export function writeLedger(entries: LedgerEntry[]): boolean {
 export function numericValue(value: string): number {
   if (value.trim() === "") return 0;
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 export const LEDGER_AMOUNT_FIELDS = [
@@ -83,6 +92,7 @@ export const LEDGER_AMOUNT_FIELDS = [
   "solar",
   "fppca",
   "others",
+  "allowance",
 ] as const;
 
 export type LedgerAmountField = (typeof LEDGER_AMOUNT_FIELDS)[number];
@@ -113,6 +123,7 @@ export function ledgerTotals(entries: LedgerSnapshot[]) {
     solar: 0,
     fppca: 0,
     others: 0,
+    allowance: 0,
     grand: 0,
   };
 
