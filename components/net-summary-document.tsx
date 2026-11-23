@@ -95,7 +95,7 @@ export function NetSummaryDocument({
               <tr>
                 <th scope="row">Premises type</th>
                 <td>{details.premisesType}</td>
-                <th scope="row">Sanctioned load / demand</th>
+                <th scope="row">Contract Demand</th>
                 <td>{details.load}</td>
               </tr>
               <tr>
@@ -222,7 +222,7 @@ export function NetSummaryDocument({
                   </dd>
                 </div>
                 <div>
-                  <dt>Sanctioned load</dt>
+                  <dt>Contract Demand</dt>
                   <dd>{formatQuantity(latest.load)}</dd>
                 </div>
                 <div>

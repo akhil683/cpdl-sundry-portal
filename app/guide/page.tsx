@@ -214,10 +214,10 @@ export default function GuidePage() {
 
             <h3>Consumption and load</h3>
             <p>
-              Enter total metered consumption for the period and the sanctioned
-              load or contract demand, whichever the category uses. Blank
+              Enter total metered consumption for the period and the Contract
+              Demand for the category. Blank
               values are treated as zero, so double-check that both fields are
-              filled before calculating. The sanctioned load can be captured in
+              filled before calculating. The Contract Demand can be captured in
               the consumer credentials card; it is copied into the calculator.
             </p>
 
@@ -299,11 +299,11 @@ export default function GuidePage() {
               <div>
                 <dt>Fixed charges</dt>
                 <dd>
-                  The category&apos;s fixed rate multiplied by the sanctioned
-                  load (one connection where the tariff is connection-based),
+                  The category&apos;s fixed rate multiplied by the Contract
+                  Demand (one connection where the tariff is connection-based),
                   then prorated using <strong>billing days ÷ 30.4167</strong>.
                   From 01-11-2025 the load basis is{" "}
-                  <strong>{FIXED_LOAD_FACTOR * 100}% of the sanctioned load</strong>
+                  <strong>{FIXED_LOAD_FACTOR * 100}% of the Contract Demand</strong>
                   ; under the old tariff the full load is used.
                 </dd>
               </div>
@@ -518,7 +518,7 @@ export default function GuidePage() {
             <p>
               Fixed charges are monthly and prorated by billing days; energy
               rates are per consumption unit. From 01-11-2025 the fixed-charge
-              load is {FIXED_LOAD_FACTOR * 100}% of the sanctioned load.
+              load is {FIXED_LOAD_FACTOR * 100}% of the Contract Demand.
             </p>
 
             {TARIFF_GROUPS.map((group) => (

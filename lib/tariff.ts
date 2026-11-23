@@ -67,7 +67,7 @@ export const ENERGY_SLAB_MONTH = 30;
  */
 export const MC_RATE_BEFORE_APR_2026 = 0.12;
 export const MC_RATE_FROM_APR_2026 = 0.16;
-/** From 01-11-2025 fixed charges use 85% of the sanctioned load. */
+/** From 01-11-2025 fixed charges use 85% of the Contract Demand. */
 export const FIXED_LOAD_FACTOR = 0.85;
 /**
  * Electricity duty is charged per unit by tariff category, not by date:
@@ -115,7 +115,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "connection",
     ed: 0.09,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "₹30 per connection per month; applicable only for load below 250 watts. Energy rate ₹2.90 per unit.",
   },
   "LTDS-II": {
@@ -126,7 +126,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "LTDS-III": {
@@ -137,7 +137,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "NDS-I": {
@@ -148,7 +148,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "LT Commercial: select Single Phase (₹50/kW/month) or Three Phase (₹120/kW/month). Energy slabs follow the applicable tariff period.",
   },
   "NDS-II": {
@@ -159,7 +159,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "₹120 per kVA per month fixed charge, with consumption charged across three energy slabs.",
   },
   "NDS-III": {
@@ -170,7 +170,7 @@ export const TARIFFS = {
     fixed: 160,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "₹160 per kVA per month fixed charge, with a flat energy rate of ₹6.70 per unit.",
   },
   "NDS-IV": {
@@ -181,7 +181,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "₹120 per kVA per month fixed charge, with a flat energy rate of ₹5.55 per unit.",
   },
   "NDS-V": {
@@ -193,7 +193,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "₹30 per kW per month fixed charge, with a flat energy rate of ₹2.95 per unit.",
   },
   "LTAS-I": {
@@ -205,7 +205,7 @@ export const TARIFFS = {
     fixed: 10,
     fixedBasis: "kW",
     ed: 0,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "Agricultural pumping supply: ₹10 per kW per month and ₹2.90 per kWh.",
   },
   "LTAS-II": {
@@ -217,7 +217,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹2.95 per kVAh.",
   },
   "LTAS-III": {
@@ -229,7 +229,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹3.10 per kVAh.",
   },
   "SPMS-LTDS-I": {
@@ -242,7 +242,7 @@ export const TARIFFS = {
     fixed: 210,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "Small power and medium supply: ₹210 per kVA per month. Slab thresholds are prorated on a 30-day basis.",
   },
   "LTPS-I": {
@@ -254,7 +254,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "Water works and government supply: ₹220 per kVA per month and ₹5.55 per kVAh.",
   },
   "LTPS-II": {
@@ -266,7 +266,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "Public lighting and sign board supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTPS-III": {
@@ -278,7 +278,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "Defence, railway and MES supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTEV-I": {
@@ -290,7 +290,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "Electric vehicle supply: ₹30 per kVA per month and ₹4.40 per kVAh.",
   },
   "HTS-I": {
@@ -302,7 +302,7 @@ export const TARIFFS = {
     fixed: 40,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-I: ₹40 per kVA per month and ₹5.50 per kVAh.",
   },
   "HTS-II": {
@@ -314,7 +314,7 @@ export const TARIFFS = {
     fixed: 125,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-II: ₹125 per kVA per month and ₹5.60 per kVAh.",
   },
   "HTS-III": {
@@ -326,7 +326,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-III: ₹20 per kVA per month and ₹2.85 per kVAh.",
   },
   "HTS-IV": {
@@ -338,7 +338,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-IV: ₹220 per kVA per month and ₹4.15 per kVAh.",
   },
   "HTS-V": {
@@ -350,7 +350,7 @@ export const TARIFFS = {
     fixed: 225,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-V: ₹225 per kVA per month and ₹5.00 per kVAh.",
   },
   "HTS-VI": {
@@ -362,7 +362,7 @@ export const TARIFFS = {
     fixed: 100,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "HTS-VI: ₹100 per kVA per month and ₹4.35 per kVAh.",
   },
   "EHTS-I": {
@@ -374,7 +374,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "EHTS-I: ₹120 per kVA per month and ₹5.55 per kVAh.",
   },
   "EHTS-II": {
@@ -386,7 +386,7 @@ export const TARIFFS = {
     fixed: 240,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "EHTS-II: ₹240 per kVA per month and ₹4.10 per kVAh.",
   },
   "EHTS-III": {
@@ -398,7 +398,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Sanctioned load / demand (kVA)",
+    loadLabel: "Contract Demand (kVA)",
     hint: "EHTS-III: ₹220 per kVA per month and ₹4.75 per kVAh.",
   },
   TEMP: {
@@ -410,7 +410,7 @@ export const TARIFFS = {
     fixed: 0,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Sanctioned load (kW)",
+    loadLabel: "Contract Demand (kW)",
     hint: "Temporary supply is charged at the relevant tariff plus 50%. This is a manual placeholder and must be adjusted before use.",
   },
 } satisfies Record<string, TariffConfig>;
@@ -953,8 +953,8 @@ export function calculateBill(
         config.fixedBasis === "connection"
           ? "Connection-based"
           : isOldTariff
-            ? "Full sanctioned load"
-            : "Sanctioned load × 0.85",
+            ? "Full Contract Demand"
+            : "Contract Demand × 0.85",
       fixed,
       total: energy + ed + mc + fixed,
     };

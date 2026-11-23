@@ -349,7 +349,7 @@ export function TariffCalculator() {
     }
 
     if (form.load.trim() === "" || !Number.isFinite(load) || load < 0) {
-      nextErrors.load = "Enter the sanctioned load as zero or more.";
+      nextErrors.load = "Enter the Contract Demand as zero or more.";
     }
 
     if (!Number.isFinite(fppca) || fppca < 0) {

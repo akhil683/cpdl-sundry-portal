@@ -175,7 +175,7 @@ export function ConsumerDetailsCard() {
 
         <div className="field">
           <label className="field-label" htmlFor="consumer-load">
-            Sanctioned load / demand
+            Contract Demand
           </label>
           <input
             id="consumer-load"
