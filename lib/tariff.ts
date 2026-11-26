@@ -67,7 +67,7 @@ export const ENERGY_SLAB_MONTH = 30;
  */
 export const MC_RATE_BEFORE_APR_2026 = 0.12;
 export const MC_RATE_FROM_APR_2026 = 0.16;
-/** From 01-11-2025 fixed charges use 85% of the Contract Demand. */
+/** From 01-11-2025 fixed charges use 85% of the sanctioned load. */
 export const FIXED_LOAD_FACTOR = 0.85;
 /**
  * Electricity duty is charged per unit by tariff category, not by date:
@@ -79,7 +79,17 @@ export const ED_RATE_FROM_APR_2026 = 0.09;
 export const ED_RATE_LTDS_II = 0.09;
 export const ED_RATE_AGRICULTURAL = 0;
 export const ED_RATE_DEFAULT = 0.11;
+/**
+ * First billed day of each new tariff period: the 2025–26 order applies from
+ * 01-11-2025 and the 2026–27 order from 01-04-2026.
+ */
 export const TARIFF_CUTOFFS = ["2025-11-01", "2026-04-01"] as const;
+/**
+ * Last billed day of each tariff period, inclusive. A bill that spans the
+ * cut-overs is split as `from + 1 → 31-10-2025`, then `01-11-2025 →
+ * 31-03-2026`, then `01-04-2026 → to`.
+ */
+export const TARIFF_PERIOD_ENDS = ["2025-10-31", "2026-03-31"] as const;
 
 export const TARIFF_PERIODS: TariffPeriod[] = [
   {
@@ -115,7 +125,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "connection",
     ed: 0.09,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per connection per month; applicable only for load below 250 watts. Energy rate ₹2.90 per unit.",
   },
   "LTDS-II": {
@@ -126,7 +136,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "LTDS-III": {
@@ -137,7 +147,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: 0.09,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with consumption charged across five energy slabs.",
   },
   "NDS-I": {
@@ -148,7 +158,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "LT Commercial: select Single Phase (₹50/kW/month) or Three Phase (₹120/kW/month). Energy slabs follow the applicable tariff period.",
   },
   "NDS-II": {
@@ -159,7 +169,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹120 per kVA per month fixed charge, with consumption charged across three energy slabs.",
   },
   "NDS-III": {
@@ -170,7 +180,7 @@ export const TARIFFS = {
     fixed: 160,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹160 per kVA per month fixed charge, with a flat energy rate of ₹6.70 per unit.",
   },
   "NDS-IV": {
@@ -181,7 +191,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "₹120 per kVA per month fixed charge, with a flat energy rate of ₹5.55 per unit.",
   },
   "NDS-V": {
@@ -193,7 +203,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "₹30 per kW per month fixed charge, with a flat energy rate of ₹2.95 per unit.",
   },
   "LTAS-I": {
@@ -205,7 +215,7 @@ export const TARIFFS = {
     fixed: 10,
     fixedBasis: "kW",
     ed: 0,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Agricultural pumping supply: ₹10 per kW per month and ₹2.90 per kWh.",
   },
   "LTAS-II": {
@@ -217,7 +227,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹2.95 per kVAh.",
   },
   "LTAS-III": {
@@ -229,7 +239,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: 0,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹3.10 per kVAh.",
   },
   "SPMS-LTDS-I": {
@@ -242,7 +252,7 @@ export const TARIFFS = {
     fixed: 210,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Small power and medium supply: ₹210 per kVA per month. Slab thresholds are prorated on a 30-day basis.",
   },
   "LTPS-I": {
@@ -254,7 +264,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Water works and government supply: ₹220 per kVA per month and ₹5.55 per kVAh.",
   },
   "LTPS-II": {
@@ -266,7 +276,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Public lighting and sign board supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTPS-III": {
@@ -278,7 +288,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Defence, railway and MES supply: ₹220 per kW per month and ₹5.55 per kWh.",
   },
   "LTEV-I": {
@@ -290,7 +300,7 @@ export const TARIFFS = {
     fixed: 30,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load (kVA)",
     hint: "Electric vehicle supply: ₹30 per kVA per month and ₹4.40 per kVAh.",
   },
   "HTS-I": {
@@ -302,7 +312,7 @@ export const TARIFFS = {
     fixed: 40,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-I: ₹40 per kVA per month and ₹5.50 per kVAh.",
   },
   "HTS-II": {
@@ -314,7 +324,7 @@ export const TARIFFS = {
     fixed: 125,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-II: ₹125 per kVA per month and ₹5.60 per kVAh.",
   },
   "HTS-III": {
@@ -326,7 +336,7 @@ export const TARIFFS = {
     fixed: 20,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-III: ₹20 per kVA per month and ₹2.85 per kVAh.",
   },
   "HTS-IV": {
@@ -338,7 +348,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-IV: ₹220 per kVA per month and ₹4.15 per kVAh.",
   },
   "HTS-V": {
@@ -350,7 +360,7 @@ export const TARIFFS = {
     fixed: 225,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-V: ₹225 per kVA per month and ₹5.00 per kVAh.",
   },
   "HTS-VI": {
@@ -362,7 +372,7 @@ export const TARIFFS = {
     fixed: 100,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "HTS-VI: ₹100 per kVA per month and ₹4.35 per kVAh.",
   },
   "EHTS-I": {
@@ -374,7 +384,7 @@ export const TARIFFS = {
     fixed: 120,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-I: ₹120 per kVA per month and ₹5.55 per kVAh.",
   },
   "EHTS-II": {
@@ -386,7 +396,7 @@ export const TARIFFS = {
     fixed: 240,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-II: ₹240 per kVA per month and ₹4.10 per kVAh.",
   },
   "EHTS-III": {
@@ -398,7 +408,7 @@ export const TARIFFS = {
     fixed: 220,
     fixedBasis: "kVA",
     ed: null,
-    loadLabel: "Contract Demand (kVA)",
+    loadLabel: "Sanctioned load / demand (kVA)",
     hint: "EHTS-III: ₹220 per kVA per month and ₹4.75 per kVAh.",
   },
   TEMP: {
@@ -410,7 +420,7 @@ export const TARIFFS = {
     fixed: 0,
     fixedBasis: "kW",
     ed: null,
-    loadLabel: "Contract Demand (kW)",
+    loadLabel: "Sanctioned load (kW)",
     hint: "Temporary supply is charged at the relevant tariff plus 50%. This is a manual placeholder and must be adjusted before use.",
   },
 } satisfies Record<string, TariffConfig>;
@@ -602,7 +612,28 @@ function parseIsoDate(value: string): number | null {
   return timestamp;
 }
 
-/** Elapsed billing days. The from date is excluded from the count. */
+function pad2(value: number): string {
+  return value.toString().padStart(2, "0");
+}
+
+/** Shift an ISO date by whole days and return an ISO date (or the input). */
+export function addDays(value: string, days: number): string {
+  const timestamp = parseIsoDate(value);
+  if (timestamp === null) return value;
+
+  const date = new Date(timestamp + days * 86_400_000);
+  const year = date.getUTCFullYear();
+  const month = pad2(date.getUTCMonth() + 1);
+  const day = pad2(date.getUTCDate());
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Billing days for the window `from` → `to`: the reading date `from` is
+ * excluded and the last billed day `to` is included, so 01-10-2025 →
+ * 31-10-2025 counts 30 days. `segmentBillingPeriods` splits this same span.
+ */
 export function billingDays(from: string, to: string): number | null {
   if (!from || !to) return null;
 
@@ -736,27 +767,42 @@ export interface BillSegmentDates {
   days: number;
 }
 
-/** Split a billing window at the tariff cut-offs (01-11-2025, 01-04-2026). */
+/**
+ * Split a billing window into tariff-period segments.
+ *
+ * `from` is the closing meter-reading date and is not billed, so the first
+ * billed day is `from` + 1. Segment end dates are inclusive, which puts the
+ * cut-offs on 31-10-2025 and 31-03-2026:
+ *
+ *   from + 1   → 31-10-2025   old tariff
+ *   01-11-2025 → 31-03-2026   approved tariff 2025–26
+ *   01-04-2026 → to           tariff 2026–27
+ *
+ * Segment day counts always add up to `billingDays(from, to)`.
+ */
 export function segmentBillingPeriods(
   from: string,
   to: string,
 ): BillSegmentDates[] {
   if (!from || !to || to <= from) return [];
 
-  const points = [
-    from,
-    ...TARIFF_CUTOFFS.filter((cutoff) => cutoff > from && cutoff < to),
-    to,
-  ].sort();
+  const firstBilledDay = addDays(from, 1);
+  const windows = [
+    { start: firstBilledDay, end: TARIFF_PERIOD_ENDS[0] },
+    { start: TARIFF_CUTOFFS[0], end: TARIFF_PERIOD_ENDS[1] },
+    { start: TARIFF_CUTOFFS[1], end: to },
+  ];
 
   const segments: BillSegmentDates[] = [];
 
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const start = points[index];
-    const end = points[index + 1];
-    const days = billingDays(start, end);
+  for (const window of windows) {
+    const start = window.start > firstBilledDay ? window.start : firstBilledDay;
+    const end = window.end < to ? window.end : to;
+    const elapsed = billingDays(start, end);
 
-    if (days !== null && days > 0) segments.push({ start, end, days });
+    if (elapsed !== null && elapsed >= 0) {
+      segments.push({ start, end, days: elapsed + 1 });
+    }
   }
 
   return segments;
@@ -953,8 +999,8 @@ export function calculateBill(
         config.fixedBasis === "connection"
           ? "Connection-based"
           : isOldTariff
-            ? "Full Contract Demand"
-            : "Contract Demand × 0.85",
+            ? "Full sanctioned load"
+            : "Sanctioned load × 0.85",
       fixed,
       total: energy + ed + mc + fixed,
     };
