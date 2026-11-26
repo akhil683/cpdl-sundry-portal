@@ -62,14 +62,14 @@ interface FormState {
   to: string;
   units: string;
   load: string;
-  fppca: string;
+  fppcaPercent: string;
 }
 
 interface FormErrors {
   dates?: string;
   units?: string;
   load?: string;
-  fppca?: string;
+  fppcaPercent?: string;
 }
 
 interface Estimate extends BillResult {
@@ -92,7 +92,7 @@ const INITIAL_FORM: FormState = {
   to: "",
   units: "800",
   load: "5",
-  fppca: "0",
+  fppcaPercent: "0",
 };
 
 const INITIAL_STATUS: StatusState = {
@@ -111,6 +111,7 @@ function rateList(segment: BillSegment, unit: string): string {
 function buildReport(
   estimate: Estimate,
   dates: { from: string; to: string },
+  fppcaPercent: number,
 ): string {
   const config = TARIFFS[estimate.category];
   const fixedUnit =
@@ -124,7 +125,7 @@ function buildReport(
     `Consumption: ${formatQuantity(estimate.units)} ${estimate.unit}`,
     `${getLoadLabel(config)}: ${formatQuantity(estimate.load)} ${getLoadUnit(config)}`,
     `Calculated load (${FIXED_LOAD_FACTOR * 100}%): ${formatQuantity(estimate.calculatedLoad)} ${getLoadUnit(config)}`,
-    `Fixed-charge months (days ÷ 30.4167): ${formatMonths(estimate.months)}`,
+    `Fixed-charge months ((billing days - 1) ÷ 30.4167): ${formatMonths(estimate.months)}`,
     "",
     `TARIFF PERIODS APPLIED: ${estimate.segments.length}`,
   ];
@@ -156,7 +157,7 @@ function buildReport(
     `Electricity duty (date-wise 0.12 → 0.16): ${formatCurrency(estimate.ed)}`,
     `MC tax (₹0.16 / ${estimate.unit}): ${formatCurrency(estimate.mc)}`,
     `Fixed charges (${formatCurrency(config.fixed)} / ${fixedUnit} / month × ${formatMonths(estimate.months)} months): ${formatCurrency(estimate.fixed)}`,
-    `FPPCA: ${formatCurrency(estimate.fppca)}`,
+    `FPPCA (${formatQuantity(fppcaPercent)}% of energy + fixed charges): ${formatCurrency(estimate.fppca)}`,
     "",
     `APPROXIMATE TOTAL: ${formatCurrency(estimate.total)}`,
   );
@@ -230,10 +231,14 @@ export function TariffCalculator() {
           tone: "success",
           message: `Estimate restored from this browser for ${stored.result.category} across ${stored.result.days} billing days and ${stored.result.segments.length} tariff period(s). Update an input and calculate again to refresh it.`,
         });
-        reportRef.current = buildReport(stored.result, {
-          from: stored.form.from,
-          to: stored.form.to,
-        });
+        reportRef.current = buildReport(
+          stored.result,
+          {
+            from: stored.form.from,
+            to: stored.form.to,
+          },
+          parseAmount(stored.form.fppcaPercent),
+        );
       }
     } else {
       const { load } = readConsumer();
@@ -334,7 +339,7 @@ export function TariffCalculator() {
     const days = billingDays(form.from, form.to);
     const units = parseAmount(form.units);
     const load = parseAmount(form.load);
-    const fppca = parseAmount(form.fppca);
+    const fppcaPercent = parseAmount(form.fppcaPercent);
 
     if (!form.from || !form.to) {
       nextErrors.dates = "Select both the from and to dates.";
@@ -352,8 +357,9 @@ export function TariffCalculator() {
       nextErrors.load = "Enter the Contract Demand as zero or more.";
     }
 
-    if (!Number.isFinite(fppca) || fppca < 0) {
-      nextErrors.fppca = "Enter a valid FPPCA amount.";
+    if (!Number.isFinite(fppcaPercent)) {
+      nextErrors.fppcaPercent =
+        "Enter a valid FPPCA percentage (negative values are allowed).";
     }
 
     if (days === null || days <= 0) {
@@ -385,7 +391,7 @@ export function TariffCalculator() {
       to: form.to,
       units,
       load,
-      fppca,
+      fppcaPercent,
       subtype: form.subtype,
     });
 
@@ -406,6 +412,7 @@ export function TariffCalculator() {
       units: nextEstimate.units,
       load: nextEstimate.load,
       fppca: nextEstimate.fppca,
+      fppcaPercent,
       edRate: effectiveEdRate,
       unit: nextEstimate.unit,
       months: nextEstimate.months,
@@ -434,10 +441,14 @@ export function TariffCalculator() {
             ? `Estimate prepared for ${form.category} across ${days} billing days and ${nextEstimate.segments.length} tariff period(s). This calculation is already in history.`
             : `Estimate prepared for ${form.category} across ${days} billing days and ${nextEstimate.segments.length} tariff period(s), and saved to history.`,
     });
-    reportRef.current = buildReport(nextEstimate, {
-      from: form.from,
-      to: form.to,
-    });
+    reportRef.current = buildReport(
+      nextEstimate,
+      {
+        from: form.from,
+        to: form.to,
+      },
+      fppcaPercent,
+    );
     writeStoredEstimate({ form, result: nextEstimate });
   }
 
@@ -702,34 +713,35 @@ export function TariffCalculator() {
               </div>
 
               <div className="field">
-                <label className="field-label" htmlFor="fppca">
-                  FPPCA amount
+                <label className="field-label" htmlFor="fppca-percent">
+                  FPPCA percentage
                 </label>
                 <div className="input-group">
                   <input
-                    id="fppca"
-                    className="control control-prefix"
+                    id="fppca-percent"
+                    className="control control-suffix"
                     type="number"
-                    min="0"
                     step="0.01"
                     inputMode="decimal"
-                    value={form.fppca}
+                    value={form.fppcaPercent}
                     onChange={(event) =>
-                      updateField("fppca", event.target.value)
+                      updateField("fppcaPercent", event.target.value)
                     }
-                    aria-invalid={errors.fppca ? true : undefined}
-                    aria-describedby={errors.fppca ? "fppca-error" : undefined}
+                    aria-invalid={errors.fppcaPercent ? true : undefined}
+                    aria-describedby={
+                      errors.fppcaPercent ? "fppca-percent-error" : undefined
+                    }
                   />
-                  <span className="affix affix-prefix">₹</span>
+                  <span className="affix affix-suffix">%</span>
                 </div>
-                {errors.fppca ? (
-                  <p className="field-error" id="fppca-error">
+                {errors.fppcaPercent ? (
+                  <p className="field-error" id="fppca-percent-error">
                     <CircleAlert
                       size={12}
                       strokeWidth={2}
                       aria-hidden="true"
                     />
-                    {errors.fppca}
+                    {errors.fppcaPercent}
                   </p>
                 ) : null}
               </div>
@@ -846,6 +858,11 @@ export function TariffCalculator() {
               <div className="line-item">
                 <div>
                   <span className="line-item-label">FPPCA</span>
+                  <span className="line-item-meta">
+                    {hasEstimate
+                      ? `${formatQuantity(parseAmount(form.fppcaPercent))}% of energy + fixed charges`
+                      : "Percentage of energy + fixed charges"}
+                  </span>
                 </div>
                 <span
                   className={`line-item-value${hasEstimate ? "" : " is-empty"}`}

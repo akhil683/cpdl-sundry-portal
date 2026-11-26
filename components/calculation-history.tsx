@@ -175,7 +175,12 @@ function HistoryCard({
                 </dd>
               </div>
               <div>
-                <dt>FPPCA</dt>
+                <dt>
+                  FPPCA
+                  {entry.fppcaPercent !== undefined
+                    ? ` (${formatQuantity(entry.fppcaPercent)}%)`
+                    : ""}
+                </dt>
                 <dd>{formatCurrency(entry.fppca)}</dd>
               </div>
             </dl>

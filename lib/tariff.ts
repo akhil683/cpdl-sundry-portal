@@ -813,7 +813,8 @@ export interface BillInputs {
   to: string;
   units: number;
   load: number;
-  fppca: number;
+  /** FPPCA as a percentage of energy plus fixed charges; may be negative. */
+  fppcaPercent: number;
   subtype?: TariffSubtype;
 }
 
@@ -915,10 +916,12 @@ export function calculateBill(
   category: TariffKey,
   inputs: BillInputs,
 ): BillResult {
-  const { from, to, units, load, fppca } = inputs;
+  const { from, to, units, load, fppcaPercent } = inputs;
   const subtype = inputs.subtype ?? getDefaultSubtype(category);
   const days = billingDays(from, to) ?? 0;
-  const months = days / FIXED_CHARGE_MONTH;
+  // Fixed charges are prorated on one day less than the elapsed billing days.
+  const chargeableDays = Math.max(0, days - 1);
+  const months = chargeableDays / FIXED_CHARGE_MONTH;
   const calculatedLoad = load * FIXED_LOAD_FACTOR;
   const periodDates = segmentBillingPeriods(from, to);
   const unit = getConsumptionUnit(TARIFFS[category]);
@@ -936,8 +939,8 @@ export function calculateBill(
     ed: 0,
     mc: 0,
     fixed: 0,
-    fppca,
-    total: fppca,
+    fppca: 0,
+    total: 0,
     exactLimit: 0,
     slabLimit: 0,
   };
@@ -977,7 +980,10 @@ export function calculateBill(
         : isOldTariff
           ? load
           : calculatedLoad;
-    const fixed = config.fixed * fixedLoad * (segment.days / FIXED_CHARGE_MONTH);
+    // Share the single excluded day across the tariff-period segments so the
+    // fixed-charge total still covers `billingDays - 1`.
+    const fixedDays = days > 0 ? (segment.days / days) * chargeableDays : 0;
+    const fixed = config.fixed * fixedLoad * (fixedDays / FIXED_CHARGE_MONTH);
 
     return {
       period: tariffPeriodFor(segment.start),
@@ -1017,6 +1023,8 @@ export function calculateBill(
   const ed = segments.reduce((sum, segment) => sum + segment.ed, 0);
   const mc = segments.reduce((sum, segment) => sum + segment.mc, 0);
   const fixed = segments.reduce((sum, segment) => sum + segment.fixed, 0);
+  const safeFppcaPercent = Number.isFinite(fppcaPercent) ? fppcaPercent : 0;
+  const fppca = ((energy + fixed) * safeFppcaPercent) / 100;
 
   return {
     category,

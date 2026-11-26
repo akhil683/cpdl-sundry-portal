@@ -18,7 +18,7 @@ export interface EstimateForm {
   to: string;
   units: string;
   load: string;
-  fppca: string;
+  fppcaPercent: string;
 }
 
 export interface StoredEstimateResult extends BillResult {
@@ -106,8 +106,64 @@ function isEstimateForm(value: unknown): value is EstimateForm {
     typeof value.to === "string" &&
     typeof value.units === "string" &&
     typeof value.load === "string" &&
+    typeof value.fppcaPercent === "string"
+  );
+}
+
+interface LegacyEstimateForm extends Omit<EstimateForm, "fppcaPercent"> {
+  fppca: string;
+}
+
+function isLegacyEstimateForm(value: unknown): value is LegacyEstimateForm {
+  if (!isRecord(value)) return false;
+
+  return (
+    typeof value.category === "string" &&
+    Object.prototype.hasOwnProperty.call(TARIFFS, value.category) &&
+    typeof value.subtype === "string" &&
+    SUBTYPES.includes(value.subtype as TariffSubtype) &&
+    typeof value.from === "string" &&
+    typeof value.to === "string" &&
+    typeof value.units === "string" &&
+    typeof value.load === "string" &&
     typeof value.fppca === "string"
   );
+}
+
+/**
+ * Older stored forms held the FPPCA rupee amount directly. Recover the
+ * equivalent percentage from the stored estimate so a refresh keeps working
+ * after the input changed to a percentage.
+ */
+function legacyFppcaPercent(
+  amount: string,
+  result: StoredEstimateResult | null,
+): string {
+  const value = Number(amount);
+  if (!result || !Number.isFinite(value) || value === 0) return "0";
+
+  const base = result.energy + result.fixed;
+  if (base === 0) return "0";
+
+  return String((value / base) * 100);
+}
+
+function readEstimateForm(
+  value: unknown,
+  result: StoredEstimateResult | null,
+): EstimateForm | null {
+  if (isEstimateForm(value)) return value;
+
+  if (isLegacyEstimateForm(value)) {
+    const { fppca, ...rest } = value;
+
+    return {
+      ...rest,
+      fppcaPercent: legacyFppcaPercent(fppca, result),
+    };
+  }
+
+  return null;
 }
 
 function isStoredEstimateResult(value: unknown): value is StoredEstimateResult {
@@ -152,12 +208,14 @@ export function readStoredEstimate(): StoredEstimateState | null {
     if (!raw) return null;
 
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed) || !isEstimateForm(parsed.form)) return null;
+    if (!isRecord(parsed)) return null;
 
-    return {
-      form: parsed.form,
-      result: isStoredEstimateResult(parsed.result) ? parsed.result : null,
-    };
+    const result = isStoredEstimateResult(parsed.result) ? parsed.result : null;
+    const form = readEstimateForm(parsed.form, result);
+
+    if (!form) return null;
+
+    return { form, result };
   } catch {
     return null;
   }

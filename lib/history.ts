@@ -23,6 +23,7 @@ export interface HistoryEntry {
   units: number;
   load: number;
   fppca: number;
+  fppcaPercent?: number;
   edRate: number;
   unit: ConsumptionUnit;
   months: number;
@@ -111,6 +112,7 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     isNumber(entry.units) &&
     isNumber(entry.load) &&
     isNumber(entry.fppca) &&
+    (entry.fppcaPercent === undefined || isNumber(entry.fppcaPercent)) &&
     isNumber(entry.edRate) &&
     (entry.unit === "kWh" || entry.unit === "kVAh") &&
     isNumber(entry.months) &&
@@ -186,6 +188,7 @@ function isSameCalculation(
     entry.units === snapshot.units &&
     entry.load === snapshot.load &&
     entry.fppca === snapshot.fppca &&
+    (entry.fppcaPercent ?? 0) === (snapshot.fppcaPercent ?? 0) &&
     entry.edRate === snapshot.edRate &&
     (entry.subtype ?? "default") === (snapshot.subtype ?? "default")
   );

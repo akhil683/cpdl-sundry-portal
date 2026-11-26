@@ -235,8 +235,10 @@ export default function GuidePage() {
 
             <h3>FPPCA</h3>
             <p>
-              FPPCA is entered as a rupee amount for the whole billing window and
-              is added once. It is not prorated or split by the portal.
+              FPPCA is entered as a percentage for the whole billing window and
+              may be positive or negative. The amount is calculated as{" "}
+              <strong>(energy charges + fixed charges) × percentage ÷ 100</strong>
+              . It is not prorated or split by the portal.
             </p>
 
             <h3>Slab proration</h3>
@@ -301,7 +303,8 @@ export default function GuidePage() {
                 <dd>
                   The category&apos;s fixed rate multiplied by the Contract
                   Demand (one connection where the tariff is connection-based),
-                  then prorated using <strong>billing days ÷ 30.4167</strong>.
+                  then prorated using{" "}
+                  <strong>(billing days - 1) ÷ 30.4167</strong>.
                   From 01-11-2025 the load basis is{" "}
                   <strong>{FIXED_LOAD_FACTOR * 100}% of the Contract Demand</strong>
                   ; under the old tariff the full load is used.
@@ -310,8 +313,12 @@ export default function GuidePage() {
               <div>
                 <dt>FPPCA</dt>
                 <dd>
-                  Added exactly as entered for the period. It is not recalculated
-                  or prorated by the portal.
+                  Calculated from the entered percentage as{" "}
+                  <strong>
+                    (energy charges + fixed charges) × percentage ÷ 100
+                  </strong>
+                  . Negative percentages reduce the bill. It is not prorated or
+                  split by the portal.
                 </dd>
               </div>
             </dl>
@@ -516,9 +523,10 @@ export default function GuidePage() {
             </div>
 
             <p>
-              Fixed charges are monthly and prorated by billing days; energy
-              rates are per consumption unit. From 01-11-2025 the fixed-charge
-              load is {FIXED_LOAD_FACTOR * 100}% of the Contract Demand.
+              Fixed charges are monthly and prorated by billing days minus one;
+              energy rates are per consumption unit. From 01-11-2025 the
+              fixed-charge load is {FIXED_LOAD_FACTOR * 100}% of the Contract
+              Demand.
             </p>
 
             {TARIFF_GROUPS.map((group) => (
