@@ -443,7 +443,7 @@ export function calculateBill(category: TariffKey, inputs: BillInputs): BillResu
 
   const days = billingDays(from, to) ?? 0;
   // Fixed charges bill both reading dates, i.e. elapsed days + 1.
-  const fixedDays = days > 0 ? days + 1 : 0;
+  const fixedDays = days > 0 ? days : 0;
   const months = fixedDays / FIXED_CHARGE_MONTH;
   const calculatedLoad = load * FIXED_LOAD_FACTOR;
   const periodDates = segmentBillingPeriods(from, to);
