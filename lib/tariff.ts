@@ -242,7 +242,7 @@ export const TARIFFS = {
     loadLabel: "Sanctioned load (kVA)",
     hint: "Agricultural pumping supply: ₹20 per kVA per month and ₹3.10 per kVAh.",
   },
-  "SPMS-LTDS-I": {
+  "LTIS-I": {
     group: "Other LT",
     unit: "kVAh",
     kind: "customSlabs",
@@ -440,7 +440,7 @@ const RATES_2025_26: Partial<Record<TariffKey, TariffRateSet>> = {
   "LTAS-I": { kind: "flat", rates: [2.85], fixed: 10, fixedBasis: "kW", ed: 0 },
   "LTAS-II": { kind: "flat", rates: [2.9], fixed: 20, fixedBasis: "kVA", ed: 0 },
   "LTAS-III": { kind: "flat", rates: [3.1], fixed: 20, fixedBasis: "kVA", ed: 0 },
-  "SPMS-LTDS-I": {
+  "LTIS-I": {
     kind: "customSlabs",
     thresholds: [500, 1000],
     rates: [4.4, 4.5, 4.6],
@@ -549,7 +549,7 @@ export const TARIFF_GROUPS: { label: string; keys: TariffKey[] }[] = [
   },
   {
     label: "Small power & medium supply (2026–27)",
-    keys: ["SPMS-LTDS-I"],
+    keys: ["LTIS-I"],
   },
   {
     label: "Water works / government & public services (2026–27)",
@@ -813,8 +813,7 @@ export interface BillInputs {
   to: string;
   units: number;
   load: number;
-  /** FPPCA as a percentage of energy plus fixed charges; may be negative. */
-  fppcaPercent: number;
+  fppca: number;
   subtype?: TariffSubtype;
 }
 
@@ -916,12 +915,13 @@ export function calculateBill(
   category: TariffKey,
   inputs: BillInputs,
 ): BillResult {
-  const { from, to, units, load, fppcaPercent } = inputs;
+  const { from, to, units, load, fppca } = inputs;
   const subtype = inputs.subtype ?? getDefaultSubtype(category);
   const days = billingDays(from, to) ?? 0;
-  // Fixed charges are prorated on one day less than the elapsed billing days.
-  const chargeableDays = Math.max(0, days - 1);
-  const months = chargeableDays / FIXED_CHARGE_MONTH;
+  // Fixed charges cover both the opening and closing reading dates, so they use
+  // one more day than the elapsed billing span. Energy stays on `days`.
+  const fixedDays = days > 0 ? days + 1 : 0;
+  const months = fixedDays / FIXED_CHARGE_MONTH;
   const calculatedLoad = load * FIXED_LOAD_FACTOR;
   const periodDates = segmentBillingPeriods(from, to);
   const unit = getConsumptionUnit(TARIFFS[category]);
@@ -939,8 +939,8 @@ export function calculateBill(
     ed: 0,
     mc: 0,
     fixed: 0,
-    fppca: 0,
-    total: 0,
+    fppca,
+    total: fppca,
     exactLimit: 0,
     slabLimit: 0,
   };
@@ -974,16 +974,15 @@ export function calculateBill(
     const mcRate = mcRateFor(segment.start);
     const mc = mcRate * segmentUnits;
     const isOldTariff = segment.start < "2025-11-01";
+    const segmentFixedDays = days > 0 ? (segment.days / days) * fixedDays : 0;
     const fixedLoad =
       config.fixedBasis === "connection"
         ? 1
         : isOldTariff
           ? load
           : calculatedLoad;
-    // Share the single excluded day across the tariff-period segments so the
-    // fixed-charge total still covers `billingDays - 1`.
-    const fixedDays = days > 0 ? (segment.days / days) * chargeableDays : 0;
-    const fixed = config.fixed * fixedLoad * (fixedDays / FIXED_CHARGE_MONTH);
+    const fixed =
+      config.fixed * fixedLoad * (segmentFixedDays / FIXED_CHARGE_MONTH);
 
     return {
       period: tariffPeriodFor(segment.start),
@@ -1023,8 +1022,6 @@ export function calculateBill(
   const ed = segments.reduce((sum, segment) => sum + segment.ed, 0);
   const mc = segments.reduce((sum, segment) => sum + segment.mc, 0);
   const fixed = segments.reduce((sum, segment) => sum + segment.fixed, 0);
-  const safeFppcaPercent = Number.isFinite(fppcaPercent) ? fppcaPercent : 0;
-  const fppca = ((energy + fixed) * safeFppcaPercent) / 100;
 
   return {
     category,
